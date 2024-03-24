@@ -1,8 +1,8 @@
-pub use create_byte_store::*;
-pub mod create_byte_store;
+pub use create_byte_account::*;
+pub mod create_byte_account;
 
-pub use update_byte_store::*;
-pub mod update_byte_store;
+pub use update_byte_account::*;
+pub mod update_byte_account;
 
-pub use delete_byte_store::*;
-pub mod delete_byte_store;
+pub use delete_byte_account::*;
+pub mod delete_byte_account;

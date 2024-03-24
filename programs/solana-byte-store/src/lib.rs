@@ -14,15 +14,15 @@ declare_id!("EPHfyiTc9VqV9Cpoyb7HGfVjfAvxms58pARnuq233FhN");
 pub mod solana_byte_store {
     use super::*;
 
-    pub fn create_byte_store(ctx: Context<CreateByteStoreContext>, id: [u8; 32], size: u32, bytes: Vec<u8>) -> Result<()> {
-        create_byte_store::invoke(ctx, id, size, bytes)
+    pub fn create_byte_account(ctx: Context<CreateByteAccountContext>, id: [u8; 32], size: u64, bytes: Vec<u8>) -> Result<()> {
+        create_byte_account::invoke(ctx, id, size, bytes)
     }
 
-    pub fn update_byte_store(ctx: Context<UpdateByteStoreContext>) -> Result<()> {
+    pub fn update_byte_account(ctx: Context<UpdateByteAccountContext>) -> Result<()> {
         Ok(())
     }
 
-    pub fn delete_byte_store(ctx: Context<DeleteByteStoreContext>) -> Result<()> {
-        delete_byte_store::invoke(ctx)
+    pub fn delete_byte_account(ctx: Context<DeleteByteAccountContext>) -> Result<()> {
+        delete_byte_account::invoke(ctx)
     }
 }
