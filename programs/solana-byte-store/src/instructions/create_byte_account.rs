@@ -43,7 +43,7 @@ pub struct CreateByteAccountContext<'info> {
     #[account(
         init,
         payer=owner,
-        space=141+(size as usize),
+        space=13+(size as usize),
         seeds=[b"byte_account", owner.key.as_ref(), id.as_ref()],
         bump
     )]
@@ -52,7 +52,7 @@ pub struct CreateByteAccountContext<'info> {
     #[account(
         init,
         payer=owner,
-        space=141+(size as usize),
+        space=512,
         seeds=[b"metadata_account", owner.key.as_ref(), id.as_ref()],
         bump
     )]
