@@ -2,11 +2,10 @@ use anchor_lang::error_code;
 
 #[error_code]
 pub enum SolanaByteStoreError {
-    /* create_byte_store */
-    #[msg("length of bytes must be equal to size")]
-    CreateByteStoreByteSizeMismatch
+    #[msg("expires_at_ts must be set in the future if set")]
+    CreateByteAccountInvalidExpiresAtTs,
 
     /* update_byte_store */
-
-    /* delete_byte_store */
+    #[msg("expires_at_ts must be set in the future if set")]
+    UpdateByteAccountInvalidExpiresAtTs,
 }

@@ -6,44 +6,49 @@ use crate::state::{ByteAccount, MetadataAccount};
 use crate::error::SolanaByteStoreError;
 use crate::util::checksum;
 
-pub fn invoke(ctx: Context<CreateByteAccountContext>, id: [u8; 32], size: u64, bytes: Vec<u8>) -> Result<()> {
+pub fn invoke(
+    ctx: Context<CreateByteAccountContext>,
+    id: [u8; 32],
+    bytes: Vec<u8>,
+    expires_at_ts: Option<u64>,
+) -> Result<()> {
     let owner = &ctx.accounts.owner;
     let mut byte_account = &mut ctx.accounts.byte_account;
     let mut metadata_account = &mut ctx.accounts.metadata_account;
 
-    require!(
-        bytes.len() == size as usize,
-        SolanaByteStoreError::CreateByteStoreByteSizeMismatch
-    );
-
     let clock = Clock::get()?;
-    let timestamp = clock.unix_timestamp.try_into().unwrap();
+    let timestamp: u64 = clock.unix_timestamp.try_into().unwrap();
 
-    let cloned_bytes = bytes.clone();
+    require!(
+        expires_at_ts.is_none() || expires_at_ts.unwrap().gt(&timestamp),
+        SolanaByteStoreError::CreateByteAccountInvalidExpiresAtTs
+    );
 
     metadata_account.id = id;
     metadata_account.bump = ctx.bumps.metadata_account;
     metadata_account.owner = owner.key();
-    metadata_account.size = size;
+    metadata_account.size = bytes.len() as u64;
     metadata_account.created_at_ts = timestamp;
     metadata_account.updated_at_ts = timestamp;
-    metadata_account.checksum = checksum::generate(cloned_bytes.as_slice());
+    metadata_account.checksum = checksum::generate(bytes.clone().as_slice());
+
+    if expires_at_ts.is_some() {
+        metadata_account.expires_at_ts = expires_at_ts.unwrap();
+    }
 
     byte_account.bump = ctx.bumps.byte_account;
     byte_account.bytes = bytes;
-
-    // TODO: expiry
 
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(id: [u8; 32], size: u64)]
+#[instruction(id: [u8; 32], bytes: Vec<u8>)]
 pub struct CreateByteAccountContext<'info> {
     #[account(
         init,
         payer=owner,
-        space=13+(size as usize),
+        space=8 + std::mem::size_of::<ByteAccount>() + bytes.len(),
         seeds=[b"byte_account", owner.key.as_ref(), id.as_ref()],
         bump
     )]
