@@ -12,7 +12,6 @@ declare_id!("A8cSqMKMx6fN4WVGKmBAdRZ9QgkHHvNriDhUyecP63hs");
 
 #[program]
 pub mod solana_byte_store {
-    use anchor_lang::__private::bytemuck::bytes_of;
     use super::*;
 
     pub fn create_byte_account(

@@ -1,10 +1,33 @@
 {
+    "name": "solana-escrow-cli",
+    "version": "1.0.0",
+    "description": "A simple CLI to interact with a Solana escrow program.",
+    "main": "dist/index.js",
     "scripts": {
         "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-        "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+        "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+        "build": "tsc",
+        "start": "ts-node app/index.ts",
+        "start:prod": "node dist/index.js"
     },
+    "keywords": [
+        "solana",
+        "escrow",
+        "cli",
+        "blockchain"
+    ],
+    "author": "Your Name",
+    "license": "MIT",
     "dependencies": {
-        "@coral-xyz/anchor": "^0.29.0"
+        "@coral-xyz/anchor": "^0.29.0",
+        "@solana/web3.js": "^1.34.0",
+        "@types/inquirer": "^8.2.1",
+        "@types/node": "^17.0.5",
+        "@types/yargs": "^17.0.6",
+        "inquirer": "^8.2.4",
+        "ts-node": "^10.4.0",
+        "typescript": "^4.5.4",
+        "yargs": "^17.2.1"
     },
     "devDependencies": {
         "chai": "^4.3.4",
@@ -17,3 +40,4 @@
         "prettier": "^2.6.2"
     }
 }
+
