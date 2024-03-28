@@ -5,7 +5,7 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-solana_byte_store = "A8cSqMKMx6fN4WVGKmBAdRZ9QgkHHvNriDhUyecP63hs"
+solana_byte_store = "byte88jyLaNSRzieGowSEjyMmazeuh1P6sREWE9tiTB"
 
 [registry]
 url = "https://api.apr.dev"

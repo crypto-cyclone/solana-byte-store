@@ -8,7 +8,7 @@ mod util;
 
 use anchor_lang::prelude::*;
 
-declare_id!("A8cSqMKMx6fN4WVGKmBAdRZ9QgkHHvNriDhUyecP63hs");
+declare_id!("byte88jyLaNSRzieGowSEjyMmazeuh1P6sREWE9tiTB");
 
 #[program]
 pub mod solana_byte_store {
