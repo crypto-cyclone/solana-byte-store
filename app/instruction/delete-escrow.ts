@@ -1,5 +1,5 @@
 import {Keypair, PublicKey, sendAndConfirmTransaction, Transaction} from "@solana/web3.js";
-import {getProgramFromIDl} from "../util/get_program_f_idl";
+import {getProgramFromIDl} from "../util/get-program-from-idl";
 import {getByteAccountPDA} from "../pda/byte-account";
 import {getMetadataAccountPDA} from "../pda/metadata-account";
 import * as anchor from "@coral-xyz/anchor";
@@ -41,7 +41,7 @@ export function prepareDeleteEscrowAccounts(
 
 export async function deleteEscrow(
     accounts: Record<string, string>,
-    owner: Keypair,
+    signers: [Keypair]
 ) {
     const program = getProgramFromIDl();
 
@@ -60,6 +60,6 @@ export async function deleteEscrow(
     await sendAndConfirmTransaction(
         anchor.AnchorProvider.env().connection,
         transaction,
-        [owner]
+        signers
     );
 }

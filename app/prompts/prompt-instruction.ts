@@ -1,7 +1,7 @@
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
-import {getProgramFromIDl} from "../util/get_program_f_idl";
+import {getProgramFromIDl} from "../util/get-program-from-idl";
 
 export async function promptInstruction(): Promise<string | undefined> {
     const instructionNames = Object.keys(getProgramFromIDl().methods);

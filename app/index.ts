@@ -1,28 +1,21 @@
 import {promptKeypair} from "./prompts/prompt-keypair";
-import {Connection, Keypair, PublicKey, SystemProgram} from "@solana/web3.js";
-import {loadKeypairFromFile} from "./util/load_keypair_ff";
+import {Connection, Keypair} from "@solana/web3.js";
+import {loadKeypairFromFile} from "./util/load-keypair-from-file";
 import {promptInstruction} from "./prompts/prompt-instruction";
 import {promptRpcUrl} from "./prompts/prompt-rpc-url";
-import {AnchorProvider, Program, setProvider, Wallet} from '@coral-xyz/anchor';
+import {AnchorProvider, setProvider, Wallet} from '@coral-xyz/anchor';
 import {promptInstructionArguments} from "./prompts/prompt-instruction-arguments";
 import {promptInstructionAccounts} from "./prompts/prompt-instruction-accounts";
 import {prepareCreateEscrowAccounts, prepareCreateEscrowArguments} from "./instruction/create-escrow";
 import {prepareUpdateEscrowAccounts, prepareUpdateEscrowArguments} from "./instruction/update-escrow";
 import {prepareDeleteEscrowAccounts, prepareDeleteEscrowArguments} from "./instruction/delete-escrow";
-
-interface KeypairState {
-    keypair: Keypair | undefined,
-}
-
-interface InstructionState {
-    instruction: string | undefined,
-    arguments: Record<string, any> | undefined,
-    accounts: Record<string, string> | undefined,
-}
-
-interface RPCState {
-    rpcUrl: string | undefined,
-}
+import {KeypairState} from "./model/keypair-state";
+import {RPCState} from "./model/rpc-state";
+import {InstructionState} from "./model/instruction-state";
+import {QueryState} from "./model/query-state";
+import {promptInstructionOrQuery} from "./prompts/prompt-instruction-or-query";
+import {promptQuery} from "./prompts/prompt-query";
+import {promptQueryArguments} from "./prompts/prompt-query-arguments";
 
 async function main() {
     let keypairState = await setupKeypair();
@@ -42,17 +35,25 @@ async function main() {
             })
     );
 
-    let instructionState = await setupInstructionState(keypairState.keypair);
+    let instructionOrQueryState = await setupInstructionOrQueryState(keypairState.keypair);
 
-    if (!instructionState.instruction) throw Error();
+    const unknownActionError = new Error(`Unknown action`)
 
-    console.log(instructionState);
+    if (instructionOrQueryState instanceof InstructionState) {
+        if (!instructionOrQueryState.instruction) throw unknownActionError;
+    } else if (instructionOrQueryState instanceof QueryState) {
+        if (!instructionOrQueryState.query) throw unknownActionError;
+    } else {
+        throw unknownActionError;
+    }
+
+    console.log(instructionOrQueryState);
 }
 
 async function setupKeypair(): Promise<KeypairState> {
-    let state: KeypairState = {
+    let state: KeypairState = KeypairState.factory({
         keypair: undefined,
-    };
+    });
 
     while (true) {
         let keypairPath = await promptKeypair();
@@ -71,9 +72,9 @@ async function setupKeypair(): Promise<KeypairState> {
 }
 
 async function setupRPCURLState(): Promise<RPCState> {
-    const state: RPCState = {
+    const state: RPCState = RPCState.factory({
         rpcUrl: undefined,
-    };
+    });
 
     while (true) {
         let rpcUrl = await promptRpcUrl();
@@ -87,12 +88,24 @@ async function setupRPCURLState(): Promise<RPCState> {
     return state;
 }
 
+async function setupInstructionOrQueryState(keypair: Keypair): Promise<InstructionState | QueryState> {
+    while (true) {
+        let instructionOrQuery = await promptInstructionOrQuery();
+
+        if (instructionOrQuery == 'instruction') {
+            return await setupInstructionState(keypair);
+        } else if (instructionOrQuery == 'query') {
+            return await setupQueryState();
+        }
+    }
+}
+
 async function setupInstructionState(keypair: Keypair): Promise<InstructionState> {
-    const state: InstructionState = {
+    const state: InstructionState = InstructionState.factory({
         instruction: undefined,
         arguments: undefined,
         accounts: undefined,
-    };
+    });
 
     while (true) {
         let instruction = await promptInstruction();
@@ -158,6 +171,30 @@ async function setupInstructionState(keypair: Keypair): Promise<InstructionState
                         break;
                     }
                 }
+            }
+        }
+    }
+
+    return state;
+}
+
+async function setupQueryState(): Promise<QueryState> {
+    const state: QueryState = QueryState.factory({
+        query: undefined,
+        arguments: undefined,
+    });
+
+    while (true) {
+        let query = await promptQuery();
+
+        if (query != null) {
+            state.query = query;
+
+            let args = await promptQueryArguments(query);
+
+            if (args != null) {
+                state.arguments = args
+                break;
             }
         }
     }

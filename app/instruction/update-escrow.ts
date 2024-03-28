@@ -1,5 +1,5 @@
 import {Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction} from "@solana/web3.js";
-import {getProgramFromIDl} from "../util/get_program_f_idl";
+import {getProgramFromIDl} from "../util/get-program-from-idl";
 import BN from "bn.js";
 import {getByteAccountPDA} from "../pda/byte-account";
 import {getMetadataAccountPDA} from "../pda/metadata-account";
@@ -44,7 +44,7 @@ export function prepareUpdateEscrowAccounts(
 export async function updateEscrow(
     args: Record<string, any>,
     accounts: Record<string, string>,
-    owner: Keypair,
+    signers: [Keypair]
 ) {
     const program = getProgramFromIDl();
 
@@ -67,6 +67,6 @@ export async function updateEscrow(
     await sendAndConfirmTransaction(
         anchor.AnchorProvider.env().connection,
         transaction,
-        [owner]
+        signers
     );
 }

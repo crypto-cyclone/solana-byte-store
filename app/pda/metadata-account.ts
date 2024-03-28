@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import {PublicKey} from "@solana/web3.js";
-import {getProgramFromIDl} from "../util/get_program_f_idl";
+import {getProgramFromIDl} from "../util/get-program-from-idl";
 
 export function getMetadataAccountPDA(
     id: Uint8Array,
