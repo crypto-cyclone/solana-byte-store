@@ -3,35 +3,43 @@ import {getProgramFromIDl} from "../util/get-program-from-idl";
 import BN from "bn.js";
 import {getByteAccountPDA} from "../pda/byte-account";
 import {getMetadataAccountPDA} from "../pda/metadata-account";
-import * as anchor from "@coral-xyz/anchor";
+import {getProvider} from "@coral-xyz/anchor";
+import {padBytesEnd} from "../util/pad-bytes";
 
-export function prepareUpdateEscrowArguments(): any[] {
-    return [{name: "id", type: {array: ["u8", 32]}}];
+export function prepareCreateByteAccountArguments(): string[] {
+    return [];
 }
 
-export function prepareUpdateEscrowAccounts(
+export function prepareCreateByteAccountAccounts(
     args: Record<string, any>,
     owner: PublicKey
 ): Record<string, string> {
     const id = args['id'] as string;
 
     if (id == null) {
-        throw new Error(`prepareUpdateEscrowAccounts argument id not found.`);
+        throw new Error(`prepareCreateEscrowAccounts argument id not found.`);
     }
 
-    const [byteAccountPDA] = getByteAccountPDA(
+    const idBytes = padBytesEnd(
         Uint8Array.from(
             Buffer.from(id, 'utf8')
         ),
-        owner
+        32
+    );
+
+    if (idBytes.length > 32) {
+        throw new Error('id could not fit within 32 bytes')
+    }
+
+    const [byteAccountPDA] = getByteAccountPDA(
+        owner,
+        idBytes,
     );
 
     const [metadataAccountPDA] = getMetadataAccountPDA(
-        Uint8Array.from(
-            Buffer.from(id, 'base64')
-        ),
-        owner
-    )
+        owner,
+        idBytes
+    );
 
     return {
         byteAccount: byteAccountPDA.toBase58(),
@@ -41,7 +49,7 @@ export function prepareUpdateEscrowAccounts(
     }
 }
 
-export async function updateEscrow(
+export async function createByteAccount(
     args: Record<string, any>,
     accounts: Record<string, string>,
     signers: [Keypair]
@@ -51,7 +59,10 @@ export async function updateEscrow(
     const transaction = new Transaction()
         .add(
             await program.methods
-                .updateByteAccount(
+                .createByteAccount(
+                    Array.from(
+                        Buffer.from(args['id'] as string, 'utf8')
+                    ),
                     Buffer.from(args['bytes'] as string, 'base64'),
                     args['expiresAtTs'] ? new BN(args['expiresAtTs'] as string) : null
                 )
@@ -65,8 +76,10 @@ export async function updateEscrow(
         );
 
     await sendAndConfirmTransaction(
-        anchor.AnchorProvider.env().connection,
+        getProvider().connection,
         transaction,
         signers
-    );
+    )
+        .catch((err) => console.log(`failed to execute createByteAccount`, err))
+        .then(() => console.log('executed createByteAccount'));
 }

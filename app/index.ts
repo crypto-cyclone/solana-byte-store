@@ -1,14 +1,11 @@
 import {promptKeypair} from "./prompts/prompt-keypair";
-import {Connection, Keypair} from "@solana/web3.js";
+import {Connection, Keypair, PublicKey} from "@solana/web3.js";
 import {loadKeypairFromFile} from "./util/load-keypair-from-file";
 import {promptInstruction} from "./prompts/prompt-instruction";
 import {promptRpcUrl} from "./prompts/prompt-rpc-url";
 import {AnchorProvider, setProvider, Wallet} from '@coral-xyz/anchor';
 import {promptInstructionArguments} from "./prompts/prompt-instruction-arguments";
 import {promptInstructionAccounts} from "./prompts/prompt-instruction-accounts";
-import {prepareCreateEscrowAccounts, prepareCreateEscrowArguments} from "./instruction/create-escrow";
-import {prepareUpdateEscrowAccounts, prepareUpdateEscrowArguments} from "./instruction/update-escrow";
-import {prepareDeleteEscrowAccounts, prepareDeleteEscrowArguments} from "./instruction/delete-escrow";
 import {KeypairState} from "./model/keypair-state";
 import {RPCState} from "./model/rpc-state";
 import {InstructionState} from "./model/instruction-state";
@@ -16,6 +13,25 @@ import {QueryState} from "./model/query-state";
 import {promptInstructionOrQuery} from "./prompts/prompt-instruction-or-query";
 import {promptQuery} from "./prompts/prompt-query";
 import {promptQueryArguments} from "./prompts/prompt-query-arguments";
+import {
+    createByteAccount,
+    prepareCreateByteAccountAccounts,
+    prepareCreateByteAccountArguments
+} from "./instruction/create-byte-account";
+import {
+    prepareUpdateByteAccountAccounts,
+    prepareUpdateByteAccountArguments,
+    updateByteAccount
+} from "./instruction/update-byte-account";
+import {
+    deleteByteAccount,
+    prepareDeleteByteAccountAccounts,
+    prepareDeleteByteAccountArguments
+} from "./instruction/delete-byte-account";
+import {getByteAccountById} from "./query/get-byte-account-by-id";
+import {getMetadataAccountById} from "./query/get-metadata-account-by-id";
+import {getByteAccountsByOwner} from "./query/get-byte-accounts-by-owner";
+import {getMetadataAccountsByOwner} from "./query/get-metadata-accounts-by-owner";
 
 async function main() {
     let keypairState = await setupKeypair();
@@ -41,13 +57,18 @@ async function main() {
 
     if (instructionOrQueryState instanceof InstructionState) {
         if (!instructionOrQueryState.instruction) throw unknownActionError;
+
+        await executeInstruction(
+            instructionOrQueryState,
+            [keypairState.keypair]
+        );
     } else if (instructionOrQueryState instanceof QueryState) {
         if (!instructionOrQueryState.query) throw unknownActionError;
+
+        await executeQuery(instructionOrQueryState);
     } else {
         throw unknownActionError;
     }
-
-    console.log(instructionOrQueryState);
 }
 
 async function setupKeypair(): Promise<KeypairState> {
@@ -117,15 +138,15 @@ async function setupInstructionState(keypair: Keypair): Promise<InstructionState
 
             switch (instruction) {
                 case 'createByteAccount':
-                    preparedArguments = prepareCreateEscrowArguments();
+                    preparedArguments = prepareCreateByteAccountArguments()
 
                     break;
                 case 'updateByteAccount':
-                    preparedArguments = prepareUpdateEscrowArguments();
+                    preparedArguments = prepareUpdateByteAccountArguments()
 
                     break;
                 case 'deleteByteAccount':
-                    preparedArguments = prepareDeleteEscrowArguments();
+                    preparedArguments = prepareDeleteByteAccountArguments()
             }
 
             let args = await promptInstructionArguments(
@@ -140,21 +161,21 @@ async function setupInstructionState(keypair: Keypair): Promise<InstructionState
 
                 switch (instruction) {
                     case 'createByteAccount':
-                        preparedAccounts = prepareCreateEscrowAccounts(
+                        preparedAccounts = prepareCreateByteAccountAccounts(
                             args,
                             keypair.publicKey
                         );
 
                         break;
                     case 'updateByteAccount':
-                        preparedAccounts = prepareUpdateEscrowAccounts(
+                        preparedAccounts = prepareUpdateByteAccountAccounts(
                             args,
                             keypair.publicKey
                         );
 
                         break;
                     case 'deleteByteAccount':
-                        preparedAccounts = prepareDeleteEscrowAccounts(
+                        preparedAccounts = prepareDeleteByteAccountAccounts(
                             args,
                             keypair.publicKey
                         );
@@ -200,6 +221,51 @@ async function setupQueryState(): Promise<QueryState> {
     }
 
     return state;
+}
+
+async function executeInstruction(state: InstructionState, signers: [Keypair]) {
+    switch (state.instruction) {
+        case 'createByteAccount':
+            await createByteAccount(
+                state.arguments,
+                state.accounts,
+                signers
+            );
+
+            break;
+        case 'updateByteAccount':
+            await updateByteAccount(
+                state.arguments,
+                state.accounts,
+                signers
+            );
+
+            break;
+        case 'deleteByteAccount':
+            await deleteByteAccount(
+                state.accounts,
+                signers
+            );
+    }
+}
+
+async function executeQuery(state: QueryState) {
+    switch (state.query) {
+        case 'get-byte-account':
+            await getByteAccountById(state.arguments);
+
+            break;
+        case 'get-metadata-account':
+            await getMetadataAccountById(state.arguments);
+
+            break;
+        case 'get-many-byte-accounts':
+            await getByteAccountsByOwner(state.arguments);
+
+            break;
+        case 'get-many-metadata-accounts':
+            await getMetadataAccountsByOwner(state.arguments);
+    }
 }
 
 main();

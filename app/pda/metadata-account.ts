@@ -3,8 +3,8 @@ import {PublicKey} from "@solana/web3.js";
 import {getProgramFromIDl} from "../util/get-program-from-idl";
 
 export function getMetadataAccountPDA(
-    id: Uint8Array,
     owner: anchor.web3.PublicKey,
+    id: Uint8Array,
 ) {
     const program = getProgramFromIDl();
 

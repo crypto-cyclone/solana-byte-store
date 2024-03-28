@@ -5,14 +5,15 @@ export async function getMetadataAccountsByOwner(args: Record<string, any>) {
 
     const program = getProgramFromIDl();
 
-    const accounts = await program.account.metadataAccount.all([
+    await program.account.metadataAccount.all([
         {
             memcmp: {
                 bytes: owner,
                 offset: 8 + 33,
             },
         }
-    ]).catch(() => []);
+    ])
+        .then((accs) => console.log(accs))
+        .catch(() => console.log([]));
 
-    return accounts;
 }
