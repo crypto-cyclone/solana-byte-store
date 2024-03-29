@@ -5,6 +5,7 @@ import {getByteAccountPDA} from "../pda/byte-account";
 import {getMetadataAccountPDA} from "../pda/metadata-account";
 import * as anchor from "@coral-xyz/anchor";
 import {padBytesEnd} from "../util/pad-bytes";
+import {getProvider} from "@coral-xyz/anchor";
 
 export function prepareUpdateByteAccountArguments(): any[] {
     return [{name: "id", type: {array: ["u8", 32]}}];
@@ -73,7 +74,7 @@ export async function updateByteAccount(
         );
 
     await sendAndConfirmTransaction(
-        anchor.AnchorProvider.env().connection,
+        getProvider().connection,
         transaction,
         signers
     )

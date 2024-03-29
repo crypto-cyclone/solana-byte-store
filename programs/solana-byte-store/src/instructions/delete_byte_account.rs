@@ -1,5 +1,5 @@
-use anchor_lang::{prelude::*, solana_program::{system_program}};
-use crate::state::{ByteAccount, MetadataAccount};
+use anchor_lang::{prelude::*};
+use crate::state::{AESAccount, ByteAccount, MetadataAccount};
 
 pub fn invoke(ctx: Context<DeleteByteAccountContext>) -> Result<()> {
     Ok(())
@@ -7,6 +7,14 @@ pub fn invoke(ctx: Context<DeleteByteAccountContext>) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct DeleteByteAccountContext<'info> {
+    #[account(
+        mut,
+        seeds=[b"aes_account", owner.key.as_ref(), metadata_account.id.as_ref()],
+        bump=aes_account.bump,
+        close=owner
+    )]
+    pub aes_account: Account<'info, AESAccount>,
+
     #[account(
         mut,
         seeds=[b"byte_account", owner.key.as_ref(), metadata_account.id.as_ref()],

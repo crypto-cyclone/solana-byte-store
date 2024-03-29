@@ -2,7 +2,7 @@ use anchor_lang::Accounts;
 use anchor_lang::context::Context;
 use anchor_lang::{prelude::*, solana_program::{system_program}};
 use crate::instructions::delete_byte_account::DeleteByteAccountContext;
-use crate::state::{ByteAccount, MetadataAccount};
+use crate::state::{AESAccount, ByteAccount, MetadataAccount};
 use crate::error::SolanaByteStoreError;
 use crate::util::checksum;
 
@@ -10,11 +10,15 @@ pub fn invoke(
     ctx: Context<CreateByteAccountContext>,
     id: [u8; 32],
     bytes: Vec<u8>,
+    aes_key: Option<Vec<u8>>,
+    aes_iv: Option<Vec<u8>>,
+    aes_auth_tag: Option<Vec<u8>>,
     expires_at_ts: Option<u64>,
 ) -> Result<()> {
     let owner = &ctx.accounts.owner;
     let mut byte_account = &mut ctx.accounts.byte_account;
     let mut metadata_account = &mut ctx.accounts.metadata_account;
+    let mut aes_account = &mut ctx.accounts.aes_account;
 
     let clock = Clock::get()?;
     let timestamp: u64 = clock.unix_timestamp.try_into().unwrap();
@@ -31,24 +35,41 @@ pub fn invoke(
     metadata_account.created_at_ts = timestamp;
     metadata_account.updated_at_ts = timestamp;
     metadata_account.checksum = checksum::generate(bytes.clone().as_slice());
-
-    if expires_at_ts.is_some() {
-        metadata_account.expires_at_ts = expires_at_ts.unwrap();
-    }
+    metadata_account.expires_at_ts = expires_at_ts.map_or(0, |v| v);
 
     byte_account.bump = ctx.bumps.byte_account;
     byte_account.bytes = bytes;
+
+    aes_account.bump = ctx.bumps.aes_account;
+    aes_account.key = aes_key.map_or(vec![], |v| v);
+    aes_account.iv = aes_iv.map_or(vec![], |v| v);
+    aes_account.auth_tag = aes_auth_tag.map_or(vec![], |v| v);
 
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(id: [u8; 32], bytes: Vec<u8>)]
+#[instruction(
+    id: [u8; 32],
+    bytes: Vec<u8>,
+    aes_key: Option<Vec<u8>>,
+    aes_iv: Option<Vec<u8>>,
+    aes_auth_tag: Option<Vec<u8>>,
+)]
 pub struct CreateByteAccountContext<'info> {
     #[account(
         init,
         payer=owner,
-        space=8 + std::mem::size_of::<ByteAccount>() + bytes.len(),
+        space=8+std::mem::size_of::<AESAccount>()+aes_key.as_ref().map_or(0, |v| v.len())+aes_iv.as_ref().map_or(0, |v| v.len())+aes_auth_tag.as_ref().map_or(0, |v| v.len()),
+        seeds=[b"aes_account", owner.key.as_ref(), id.as_ref()],
+        bump
+    )]
+    pub aes_account: Account<'info, AESAccount>,
+
+    #[account(
+        init,
+        payer=owner,
+        space=8+std::mem::size_of::<ByteAccount>()+bytes.len(),
         seeds=[b"byte_account", owner.key.as_ref(), id.as_ref()],
         bump
     )]
