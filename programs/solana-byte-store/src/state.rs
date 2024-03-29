@@ -1,17 +1,12 @@
 use anchor_lang::{prelude::*};
 
 #[account]
-pub struct AESAccount {
-    pub bump: u8,
-    pub key: Vec<u8>,
-    pub iv: Vec<u8>,
-    pub auth_tag: Vec<u8>,
-}
-
-#[account]
 pub struct ByteAccount {
     pub bump: u8,
     pub bytes: Vec<u8>,
+    pub aes_key: Vec<u8>,
+    pub aes_iv: Vec<u8>,
+    pub aes_auth_tag: Vec<u8>,
 }
 
 #[account]
