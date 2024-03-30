@@ -1,5 +1,5 @@
 import {promptKeypair} from "./prompts/prompt-keypair";
-import {Connection, Keypair, PublicKey} from "@solana/web3.js";
+import {Connection, Keypair} from "@solana/web3.js";
 import {loadKeypairFromFile} from "./util/load-keypair-from-file";
 import {promptInstruction} from "./prompts/prompt-instruction";
 import {promptRpcUrl} from "./prompts/prompt-rpc-url";
@@ -34,7 +34,6 @@ import {getByteAccountsByOwner} from "./query/get-byte-accounts-by-owner";
 import {getMetadataAccountsByOwner} from "./query/get-metadata-accounts-by-owner";
 import {promptEncryption} from "./prompts/prompt-encryption";
 import {getDecryptedBytesById} from "./query/get-decrypted-bytes-by-id";
-import {Key} from "node:readline";
 import {promptDefaultOwner} from "./prompts/prompt-default-owner";
 
 async function main() {

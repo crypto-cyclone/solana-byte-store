@@ -29,6 +29,7 @@ pub fn invoke(
     metadata_account.byte_account = byte_account.to_account_info().key();
     metadata_account.expires_at_ts = expires_at_ts.map_or(0, |v| v);
 
+    byte_account.bump = ctx.bumps.byte_account;
     byte_account.bytes = bytes;
     byte_account.aes_key = aes_key.map_or(vec![], |v| v);
     byte_account.aes_iv = aes_iv.map_or(vec![], |v| v);
@@ -48,10 +49,10 @@ pub struct UpdateByteAccountContext<'info> {
     #[account(
         mut,
         seeds=[b"byte_account", owner.key.as_ref(), metadata_account.id.as_ref()],
-        bump=byte_account.bump,
+        bump,
         realloc=8+std::mem::size_of::<ByteAccount>()+bytes.len()+aes_key.as_ref().map_or(0, |v| v.len())+aes_iv.as_ref().map_or(0, |v| v.len())+aes_auth_tag.as_ref().map_or(0, |v| v.len()),
         realloc::payer=owner,
-        realloc::zero=false
+        realloc::zero=true
     )]
     pub byte_account: Account<'info, ByteAccount>,
 

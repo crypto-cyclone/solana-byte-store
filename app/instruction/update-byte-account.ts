@@ -18,7 +18,7 @@ export function prepareUpdateByteAccountOnArgument(encryptionEnabled: boolean, k
             argv['aesKey'] = '';
             argv['aesIv'] = '';
             argv['aesAuthTag'] = '';
-        } else if (bytesBase64 != null) {
+        } else if (bytesBase64 != null && (argv['bytes'] == null || argv['aesKey'] == null || argv['aesAuthTag'] == null)) {
 
             const spinner = new Spinner('%s Encrypting bytes...');
             spinner.setSpinnerString(2);
