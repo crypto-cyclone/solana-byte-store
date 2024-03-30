@@ -62,6 +62,7 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
     expect(metadataAccountUpdate.isEncrypted).to.be.false;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
     expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
     expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(bytes));
@@ -104,6 +105,7 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
     expect(metadataAccountUpdate.isEncrypted).to.be.false;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
     expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
     expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(bytes));
@@ -146,6 +148,7 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
     expect(metadataAccountUpdate.isEncrypted).to.be.false;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
     expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
     expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(bytes));
@@ -214,6 +217,7 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encrypted)));
     expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
     expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
     expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encrypted));
@@ -273,6 +277,7 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encrypted)));
     expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
     expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
     expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encrypted));
@@ -332,6 +337,7 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encrypted)));
     expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
     expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
     expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encrypted));

@@ -5,7 +5,8 @@ import {getProgramFromIDl} from "../util/get-program-from-idl";
 
 export async function promptInstructionArguments(
     instructionName: string,
-    preparedArguments: any[]
+    preparedArguments: any[],
+    onArgument: (argv: any, arg: any) => void
 ): Promise<Record<string, any>> {
     const instruction = getProgramFromIDl().idl.instructions.find(instr => instr.name === instructionName);
 
@@ -42,6 +43,7 @@ export async function promptInstructionArguments(
 
     for (const arg of [...preparedArguments, ...instruction.args]) {
         argValues[arg.name] = await promptForArgument(arg);
+        await onArgument(argv, argValues);
     }
 
     for (const argValue in argValues) {

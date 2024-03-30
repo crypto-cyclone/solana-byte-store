@@ -3,13 +3,14 @@ import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
 
 const queryArgumentsConfig = {
-    'get-byte-account': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }],
+    'get-byte-account': [{ name: 'owner', type: 'string'}, { name: 'id', type: 'string' }],
     'get-metadata-account': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }],
+    'get-decrypted-bytes': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }],
     'get-many-byte-accounts': [{ name: 'owner', type: 'string' }],
     'get-many-metadata-accounts': [{ name: 'owner', type: 'string' }]
 };
 
-export async function promptQueryArguments(queryAction: string): Promise<Record<string, any>> {
+export async function promptQueryArguments(queryAction: string, preparedArguments: Record<string, any>): Promise<Record<string, any>> {
     const queryArgs = queryArgumentsConfig[queryAction];
 
     if (!queryArgs) {
@@ -26,6 +27,10 @@ export async function promptQueryArguments(queryAction: string): Promise<Record<
     });
 
     const argv = argvBuilder.help().alias('help', 'h').argv;
+
+    for (const arg in preparedArguments) {
+        argv[arg] = preparedArguments[arg];
+    }
 
     async function promptForArgument(arg: { name: string, type: string }): Promise<any> {
         if (argv[arg.name] !== undefined) {

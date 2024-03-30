@@ -5,6 +5,10 @@ import {getMetadataAccountPDA} from "../pda/metadata-account";
 import {padBytesEnd} from "../util/pad-bytes";
 import {getProvider} from "@coral-xyz/anchor";
 
+export function prepareDeleteByteAccountOnArgument(): (argv: any, argValues: any) => void {
+    return async () => {}
+}
+
 export function prepareDeleteByteAccountArguments(): any[] {
     return [{name: "id", type: {array: ["u8", 32]}}];
 }

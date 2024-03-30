@@ -16,22 +16,26 @@ import {promptQueryArguments} from "./prompts/prompt-query-arguments";
 import {
     createByteAccount,
     prepareCreateByteAccountAccounts,
-    prepareCreateByteAccountArguments
+    prepareCreateByteAccountArguments, prepareCreateByteAccountOnArgument
 } from "./instruction/create-byte-account";
 import {
     prepareUpdateByteAccountAccounts,
-    prepareUpdateByteAccountArguments,
+    prepareUpdateByteAccountArguments, prepareUpdateByteAccountOnArgument,
     updateByteAccount
 } from "./instruction/update-byte-account";
 import {
     deleteByteAccount,
     prepareDeleteByteAccountAccounts,
-    prepareDeleteByteAccountArguments
+    prepareDeleteByteAccountArguments, prepareDeleteByteAccountOnArgument
 } from "./instruction/delete-byte-account";
 import {getByteAccountById} from "./query/get-byte-account-by-id";
 import {getMetadataAccountById} from "./query/get-metadata-account-by-id";
 import {getByteAccountsByOwner} from "./query/get-byte-accounts-by-owner";
 import {getMetadataAccountsByOwner} from "./query/get-metadata-accounts-by-owner";
+import {promptEncryption} from "./prompts/prompt-encryption";
+import {getDecryptedBytesById} from "./query/get-decrypted-bytes-by-id";
+import {Key} from "node:readline";
+import {promptDefaultOwner} from "./prompts/prompt-default-owner";
 
 async function main() {
     let keypairState = await setupKeypair();
@@ -65,7 +69,7 @@ async function main() {
     } else if (instructionOrQueryState instanceof QueryState) {
         if (!instructionOrQueryState.query) throw unknownActionError;
 
-        await executeQuery(instructionOrQueryState);
+        await executeQuery(instructionOrQueryState, keypairState.keypair);
     } else {
         throw unknownActionError;
     }
@@ -116,7 +120,7 @@ async function setupInstructionOrQueryState(keypair: Keypair): Promise<Instructi
         if (instructionOrQuery == 'instruction') {
             return await setupInstructionState(keypair);
         } else if (instructionOrQuery == 'query') {
-            return await setupQueryState();
+            return await setupQueryState(keypair);
         }
     }
 }
@@ -135,23 +139,34 @@ async function setupInstructionState(keypair: Keypair): Promise<InstructionState
             state.instruction = instruction;
 
             let preparedArguments = null;
+            let onArgument = null;
 
             switch (instruction) {
                 case 'createByteAccount':
-                    preparedArguments = prepareCreateByteAccountArguments()
+                    preparedArguments = prepareCreateByteAccountArguments();
+                    onArgument = prepareCreateByteAccountOnArgument(
+                        await promptEncryption(),
+                        keypair
+                    );
 
                     break;
                 case 'updateByteAccount':
-                    preparedArguments = prepareUpdateByteAccountArguments()
+                    preparedArguments = prepareUpdateByteAccountArguments();
+                    onArgument = prepareUpdateByteAccountOnArgument(
+                        await promptEncryption(),
+                        keypair
+                    );
 
                     break;
                 case 'deleteByteAccount':
-                    preparedArguments = prepareDeleteByteAccountArguments()
+                    preparedArguments = prepareDeleteByteAccountArguments();
+                    onArgument = prepareDeleteByteAccountOnArgument();
             }
 
             let args = await promptInstructionArguments(
                 instruction,
-                preparedArguments
+                preparedArguments,
+                onArgument
             );
 
             if (args != null) {
@@ -199,7 +214,7 @@ async function setupInstructionState(keypair: Keypair): Promise<InstructionState
     return state;
 }
 
-async function setupQueryState(): Promise<QueryState> {
+async function setupQueryState(keypair: Keypair): Promise<QueryState> {
     const state: QueryState = QueryState.factory({
         query: undefined,
         arguments: undefined,
@@ -211,7 +226,15 @@ async function setupQueryState(): Promise<QueryState> {
         if (query != null) {
             state.query = query;
 
-            let args = await promptQueryArguments(query);
+            const defaultOwner = await promptDefaultOwner();
+
+            let preparedArguments = {};
+
+            if (defaultOwner) {
+                preparedArguments = { owner: keypair.publicKey.toBase58() }
+            }
+
+            let args = await promptQueryArguments(query, preparedArguments);
 
             if (args != null) {
                 state.arguments = args
@@ -249,7 +272,7 @@ async function executeInstruction(state: InstructionState, signers: [Keypair]) {
     }
 }
 
-async function executeQuery(state: QueryState) {
+async function executeQuery(state: QueryState, keypair: Keypair) {
     switch (state.query) {
         case 'get-byte-account':
             await getByteAccountById(state.arguments);
@@ -257,6 +280,11 @@ async function executeQuery(state: QueryState) {
             break;
         case 'get-metadata-account':
             await getMetadataAccountById(state.arguments);
+
+            break;
+
+        case 'get-decrypted-bytes':
+            await getDecryptedBytesById(state.arguments, keypair);
 
             break;
         case 'get-many-byte-accounts':

@@ -26,6 +26,7 @@ pub fn invoke(
     metadata_account.updated_at_ts = timestamp;
     metadata_account.checksum = checksum::generate(bytes.clone().as_slice());
     metadata_account.is_encrypted = aes_key.is_some();
+    metadata_account.byte_account = byte_account.to_account_info().key();
     metadata_account.expires_at_ts = expires_at_ts.map_or(0, |v| v);
 
     byte_account.bytes = bytes;

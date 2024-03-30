@@ -6,6 +6,7 @@ export async function promptQuery(): Promise<string | undefined> {
     const querys = [
         'get-byte-account',
         'get-metadata-account',
+        'get-decrypted-bytes',
         'get-many-byte-accounts',
         'get-many-metadata-accounts'
     ];

@@ -18,7 +18,6 @@ pub struct MetadataAccount {
     pub checksum: [u8; 32],
     pub is_encrypted: bool,
     pub byte_account: Pubkey,
-    pub aes_account: Pubkey,
     pub created_at_ts: u64,
     pub updated_at_ts: u64,
     pub expires_at_ts: u64,
