@@ -42,6 +42,8 @@ import {
     prepareDeleteVersionAccountAccounts, prepareDeleteVersionAccountArguments,
     prepareDeleteVersionAccountOnArgument
 } from "./instruction/delete-version-account";
+import {getDecryptedBytesForNVersions} from "./query/get-decrypted-bytes-for-n-versions";
+import {getByteAccountsForNVersions} from "./query/get-byte-accounts-for-n-versions";
 
 async function main() {
     let keypairState = await setupKeypair();
@@ -316,12 +318,21 @@ async function executeQuery(state: QueryState, keypair: Keypair) {
             await getDecryptedBytesById(state.arguments, keypair);
 
             break;
+
+        case 'get-decrypted-bytes-for-n-versions':
+            await getDecryptedBytesForNVersions(state.arguments, keypair);
+
+            break;
         case 'get-many-version-accounts':
             await getVersionAccountsByOwner(state.arguments);
 
             break;
         case 'get-many-byte-accounts':
             await getByteAccountsByOwner(state.arguments);
+
+            break;
+        case 'get-byte-accounts-for-n-versions':
+            await getByteAccountsForNVersions(state.arguments);
 
             break;
         case 'get-many-metadata-accounts':

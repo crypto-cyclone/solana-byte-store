@@ -7,8 +7,10 @@ const queryArgumentsConfig = {
     'get-byte-account': [{ name: 'owner', type: 'string'}, { name: 'id', type: 'string' }, { name: 'version', type: 'u64' }],
     'get-metadata-account': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }, { name: 'version', type: 'u64' }],
     'get-decrypted-bytes': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }, { name: 'version', type: 'u64' }],
+    'get-decrypted-bytes-for-n-versions': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }, { name: 'limit', type: 'u64' }],
     'get-many-version-accounts': [{ name: 'owner', type: 'string' }],
     'get-many-byte-accounts': [{ name: 'owner', type: 'string' }],
+    'get-byte-accounts-for-n-versions': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }, { name: 'limit', type: 'u64' }],
     'get-many-metadata-accounts': [{ name: 'owner', type: 'string' }]
 };
 

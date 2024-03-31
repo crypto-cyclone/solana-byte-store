@@ -8,8 +8,10 @@ export async function promptQuery(): Promise<string | undefined> {
         'get-byte-account',
         'get-metadata-account',
         'get-decrypted-bytes',
+        'get-decrypted-bytes-for-n-versions',
         'get-many-version-accounts',
         'get-many-byte-accounts',
+        'get-byte-accounts-for-n-versions',
         'get-many-metadata-accounts'
     ];
 
