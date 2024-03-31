@@ -18,6 +18,7 @@ export async function promptRpcUrl(): Promise<string> {
         })
         .help()
         .alias('help', 'h')
+        .version(false)
         .argv;
 
     if (argv['rpc']) {

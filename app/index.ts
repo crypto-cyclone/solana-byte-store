@@ -35,6 +35,13 @@ import {getMetadataAccountsByOwner} from "./query/get-metadata-accounts-by-owner
 import {promptEncryption} from "./prompts/prompt-encryption";
 import {getDecryptedBytesById} from "./query/get-decrypted-bytes-by-id";
 import {promptDefaultOwner} from "./prompts/prompt-default-owner";
+import {getVersionAccountById} from "./query/get-version-account-by-id";
+import {getVersionAccountsByOwner} from "./query/get-version-accounts-by-owner";
+import {
+    deleteVersionAccount,
+    prepareDeleteVersionAccountAccounts, prepareDeleteVersionAccountArguments,
+    prepareDeleteVersionAccountOnArgument
+} from "./instruction/delete-version-account";
 
 async function main() {
     let keypairState = await setupKeypair();
@@ -160,6 +167,11 @@ async function setupInstructionState(keypair: Keypair): Promise<InstructionState
                 case 'deleteByteAccount':
                     preparedArguments = prepareDeleteByteAccountArguments();
                     onArgument = prepareDeleteByteAccountOnArgument();
+
+                    break;
+                case 'deleteVersionAccount':
+                    preparedArguments = prepareDeleteVersionAccountArguments();
+                    onArgument = prepareDeleteVersionAccountOnArgument();
             }
 
             let args = await promptInstructionArguments(
@@ -190,6 +202,13 @@ async function setupInstructionState(keypair: Keypair): Promise<InstructionState
                         break;
                     case 'deleteByteAccount':
                         preparedAccounts = prepareDeleteByteAccountAccounts(
+                            args,
+                            keypair.publicKey
+                        );
+
+                        break;
+                    case 'deleteVersionAccount':
+                        preparedAccounts = prepareDeleteVersionAccountAccounts(
                             args,
                             keypair.publicKey
                         );
@@ -268,11 +287,22 @@ async function executeInstruction(state: InstructionState, signers: [Keypair]) {
                 state.accounts,
                 signers
             );
+
+            break;
+        case 'deleteVersionAccount':
+            await deleteVersionAccount(
+                state.accounts,
+                signers
+            );
     }
 }
 
 async function executeQuery(state: QueryState, keypair: Keypair) {
     switch (state.query) {
+        case 'get-version-account':
+            await getVersionAccountById(state.arguments);
+
+            break;
         case 'get-byte-account':
             await getByteAccountById(state.arguments);
 
@@ -284,6 +314,10 @@ async function executeQuery(state: QueryState, keypair: Keypair) {
 
         case 'get-decrypted-bytes':
             await getDecryptedBytesById(state.arguments, keypair);
+
+            break;
+        case 'get-many-version-accounts':
+            await getVersionAccountsByOwner(state.arguments);
 
             break;
         case 'get-many-byte-accounts':

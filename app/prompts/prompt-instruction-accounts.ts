@@ -13,7 +13,8 @@ export async function promptInstructionAccounts(
         throw new Error(`Instruction ${instructionName} not found.`);
     }
 
-    let argvBuilder = yargs(hideBin(process.argv));
+    let argvBuilder = yargs(hideBin(process.argv))
+        .version(false);
     instruction.accounts.forEach(account => {
         argvBuilder = argvBuilder.option(account.name, {
             alias: `acc-${account.name}`,

@@ -4,9 +4,11 @@ import inquirer from 'inquirer';
 
 export async function promptQuery(): Promise<string | undefined> {
     const querys = [
+        'get-version-account',
         'get-byte-account',
         'get-metadata-account',
         'get-decrypted-bytes',
+        'get-many-version-accounts',
         'get-many-byte-accounts',
         'get-many-metadata-accounts'
     ];
@@ -20,6 +22,7 @@ export async function promptQuery(): Promise<string | undefined> {
         })
         .help()
         .alias('help', 'h')
+        .version(false)
         .argv;
 
     async function promptForQueryAction(): Promise<string> {

@@ -6,8 +6,9 @@ import {decryptAESKey} from "../util/decrypt-aes-key";
 import {decryptBytesAES} from "../util/decrypt-bytes-aes";
 
 export async function getDecryptedBytesById(args: Record<string, any>, keypair: Keypair) {
-    const owner = args['owner'];
-    const id = args['id'];
+    const owner = args['owner'] as string;
+    const id = args['id'] as string;
+    const version = args['version'] as number;
 
     const idBytes = padBytesEnd(
         Uint8Array.from(
@@ -22,7 +23,8 @@ export async function getDecryptedBytesById(args: Record<string, any>, keypair: 
 
     const [byteAccountPDA] = getByteAccountPDA(
         new PublicKey(owner),
-        idBytes
+        idBytes,
+        version
     );
 
     const program = getProgramFromIDl();

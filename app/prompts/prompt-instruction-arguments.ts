@@ -14,7 +14,8 @@ export async function promptInstructionArguments(
         throw new Error(`Instruction ${instructionName} not found.`);
     }
 
-    let argvBuilder = yargs(hideBin(process.argv));
+    let argvBuilder = yargs(hideBin(process.argv))
+        .version(false);
     [...preparedArguments, ...instruction.args].forEach(arg => {
         argvBuilder = argvBuilder.option(arg.name, {
             alias: `arg-${arg.name}`,

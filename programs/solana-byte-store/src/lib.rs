@@ -17,6 +17,7 @@ pub mod solana_byte_store {
     pub fn create_byte_account(
         ctx: Context<CreateByteAccountContext>,
         id: [u8; 32],
+        version: u64,
         bytes: Vec<u8>,
         aes_key: Option<Vec<u8>>,
         aes_iv: Option<Vec<u8>>,
@@ -26,6 +27,7 @@ pub mod solana_byte_store {
         create_byte_account::invoke(
             ctx,
             id,
+            version,
             bytes,
             aes_key,
             aes_iv,
@@ -54,5 +56,9 @@ pub mod solana_byte_store {
 
     pub fn delete_byte_account(ctx: Context<DeleteByteAccountContext>) -> Result<()> {
         delete_byte_account::invoke(ctx)
+    }
+
+    pub fn delete_version_account(ctx: Context<DeleteVersionAccountContext>) -> Result<()> {
+        delete_version_account::invoke(ctx)
     }
 }

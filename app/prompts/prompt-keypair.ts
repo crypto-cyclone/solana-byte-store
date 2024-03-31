@@ -11,6 +11,7 @@ export async function promptKeypair(): Promise<string | undefined> {
         })
         .help()
         .alias('help', 'h')
+        .version(false)
         .argv;
 
     async function promptForKeyPairPath(): Promise<string> {

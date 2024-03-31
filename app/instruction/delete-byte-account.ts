@@ -10,7 +10,7 @@ export function prepareDeleteByteAccountOnArgument(): (argv: any, argValues: any
 }
 
 export function prepareDeleteByteAccountArguments(): any[] {
-    return [{name: "id", type: {array: ["u8", 32]}}];
+    return [{name: "id", type: {array: ["u8", 32]}}, {name: "version", type: 'u64'}];
 }
 
 export function prepareDeleteByteAccountAccounts(
@@ -18,9 +18,14 @@ export function prepareDeleteByteAccountAccounts(
     owner: PublicKey
 ): Record<string, string> {
     const id = args['id'] as string;
+    const version = args['version'] as number;
 
     if (id == null) {
-        throw new Error(`prepareDeleteEscrowAccounts argument id not found.`);
+        throw new Error(`prepareDeleteByteAccount argument id not found.`);
+    }
+
+    if (version == null) {
+        throw new Error(`prepareDeleteByteAccount argument version not found.`);
     }
 
     const idBytes = padBytesEnd(
@@ -36,12 +41,14 @@ export function prepareDeleteByteAccountAccounts(
 
     const [byteAccountPDA] = getByteAccountPDA(
         owner,
-        idBytes
+        idBytes,
+        version,
     );
 
     const [metadataAccountPDA] = getMetadataAccountPDA(
         owner,
-        idBytes
+        idBytes,
+        version,
     );
 
     return {

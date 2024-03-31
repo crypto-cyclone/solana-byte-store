@@ -1,7 +1,7 @@
 use anchor_lang::{prelude::*};
 use crate::state::{ByteAccount, MetadataAccount};
 
-pub fn invoke(ctx: Context<DeleteByteAccountContext>) -> Result<()> {
+pub fn invoke(_ctx: Context<DeleteByteAccountContext>) -> Result<()> {
     Ok(())
 }
 
@@ -9,7 +9,7 @@ pub fn invoke(ctx: Context<DeleteByteAccountContext>) -> Result<()> {
 pub struct DeleteByteAccountContext<'info> {
     #[account(
         mut,
-        seeds=[b"byte_account", owner.key.as_ref(), metadata_account.id.as_ref()],
+        seeds=[b"byte_account", owner.key.as_ref(), metadata_account.id.as_ref(), metadata_account.version.to_string().as_bytes().as_ref()],
         bump=byte_account.bump,
         close=owner
     )]
@@ -17,7 +17,7 @@ pub struct DeleteByteAccountContext<'info> {
 
     #[account(
         mut,
-        seeds=[b"metadata_account", owner.key.as_ref(), metadata_account.id.as_ref()],
+        seeds=[b"metadata_account", owner.key.as_ref(), metadata_account.id.as_ref(), metadata_account.version.to_string().as_bytes().as_ref()],
         bump=metadata_account.bump,
         close=owner
     )]

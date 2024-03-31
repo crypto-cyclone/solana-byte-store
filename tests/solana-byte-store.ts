@@ -30,16 +30,19 @@ describe("solana-byte-store", () => {
     await delay(30000);
   })
 
-  it("it creates byte account", async () => {
+  it("it creates byte account version 1", async () => {
     const id = id1;
+    const version = 1;
     const bytes = generateRandomByteArray(100);
 
-    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, owner);
+    const [versionAccountPDA, versionAccountBump] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
 
     await createByteAccount(
         owner,
         id,
+        version,
         bytes,
         null,
         null,
@@ -47,14 +50,23 @@ describe("solana-byte-store", () => {
         Date.now() / 1000 + 86400
     );
 
+    const versionAccountUpdate =
+        await program.account.versionAccount.fetch(versionAccountPDA);
+
     const byteAccountUpdate =
         await program.account.byteAccount.fetch(byteAccountPDA);
 
     const metadataAccountUpdate =
         await program.account.metadataAccount.fetch(metadataAccountPDA);
 
+    expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
+    expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(versionAccountUpdate.currentVersion.toNumber()).to.be.eq(version);
+
     expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
     expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
     expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
     expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
     expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
@@ -73,16 +85,18 @@ describe("solana-byte-store", () => {
     await delay(1000);
   });
 
-  it("it updates byte account to larger bytes", async () => {
+  it("it updates byte account version 1 to larger bytes", async () => {
     const id = id1;
+    const version = 1;
     const bytes = generateRandomByteArray(200);
 
-    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
 
     await updateByteAccount(
         owner,
         id,
+        version,
         bytes,
         null,
         null,
@@ -116,16 +130,18 @@ describe("solana-byte-store", () => {
     await delay(1000);
   });
 
-  it("it updates byte account to smaller bytes", async () => {
+  it("it updates byte account version 1 to smaller bytes", async () => {
     const id = id1;
+    const version = 1;
     const bytes = generateRandomByteArray(50);
 
-    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
 
     await updateByteAccount(
         owner,
         id,
+        version,
         bytes,
         null,
         null,
@@ -159,13 +175,161 @@ describe("solana-byte-store", () => {
     await delay(1000);
   });
 
-  it("it deletes byte account", async () => {
+  it ("it creates byte account version 2", async () => {
     const id = id1;
+    const version = 2;
+    const bytes = generateRandomByteArray(100);
 
-    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, owner);
+    const [versionAccountPDA, versionAccountBump] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
 
-    await deleteByteAccount(owner, id);
+    await createByteAccount(
+        owner,
+        id,
+        version,
+        bytes,
+        null,
+        null,
+        null,
+        Date.now() / 1000 + 86400
+    );
+
+    const versionAccountUpdate =
+        await program.account.versionAccount.fetch(versionAccountPDA);
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
+    expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(versionAccountUpdate.currentVersion.toNumber()).to.be.eq(version);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.eq(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.false;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(bytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from([]));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from([]));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from([]));
+
+    await delay(1000);
+  });
+
+  it("it updates byte account version 2 to larger bytes", async () => {
+    const id = id1;
+    const version = 2;
+    const bytes = generateRandomByteArray(200);
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    await updateByteAccount(
+        owner,
+        id,
+        version,
+        bytes,
+        null,
+        null,
+        null,
+        Date.now() / 1000 + 86400
+    );
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.false;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(bytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from([]));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from([]));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from([]));
+
+    await delay(1000);
+  });
+
+  it("it updates byte account version 2 to smaller bytes", async () => {
+    const id = id1;
+    const version = 2;
+    const bytes = generateRandomByteArray(50);
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    await updateByteAccount(
+        owner,
+        id,
+        version,
+        bytes,
+        null,
+        null,
+        null,
+        Date.now() / 1000 + 86400
+    );
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.false;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(bytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from([]));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from([]));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from([]));
+
+    await delay(1000);
+  });
+
+  it("it deletes byte account version 1", async () => {
+    const id = id1;
+    const version = 1;
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    await deleteByteAccount(owner, version, id);
 
     await program.account.byteAccount
             .fetch(byteAccountPDA)
@@ -180,192 +344,14 @@ describe("solana-byte-store", () => {
     await delay(1000);
   });
 
-  it("it creates an encrypted byte account", async () => {
-    const id = id2;
-    const bytes = generateRandomByteArray(100);
+  it("it deletes byte account version 2", async () => {
+    const id = id1;
+    const version = 2;
 
-    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
 
-    const aesKey = generateAESKey();
-
-    const [encrypted, iv, authTag] = encryptWithAESGCM(aesKey, bytes);
-    const encryptedAesKey = encryptAESKey(owner, aesKey);
-
-    await createByteAccount(
-        owner,
-        id,
-        encrypted,
-        encryptedAesKey,
-        iv,
-        authTag,
-        Date.now() / 1000 + 86400
-    );
-
-    const byteAccountUpdate =
-        await program.account.byteAccount.fetch(byteAccountPDA);
-
-    const metadataAccountUpdate =
-        await program.account.metadataAccount.fetch(metadataAccountPDA);
-
-    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
-    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
-    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
-    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(encrypted.length);
-    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
-    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.eq(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encrypted)));
-    expect(metadataAccountUpdate.isEncrypted).to.be.true;
-    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
-
-    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
-    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encrypted));
-    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
-    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(iv));
-    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(authTag));
-
-    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
-    const decryptedBytes = decryptWithAESGCM(
-        decryptedAesKey,
-        byteAccountUpdate.bytes,
-        byteAccountUpdate.aesIv,
-        byteAccountUpdate.aesAuthTag,
-    );
-
-    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
-    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
-
-    await delay(1000);
-  });
-
-  it("it updates an encrypted byte account to larger bytes", async () => {
-    const id = id2;
-
-    const bytes = generateRandomByteArray(200);
-
-    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, owner);
-
-    const aesKey = generateAESKey();
-
-    const [encrypted, iv, authTag] = encryptWithAESGCM(aesKey, bytes);
-    const encryptedAesKey = encryptAESKey(owner, aesKey);
-
-    await updateByteAccount(
-        owner,
-        id,
-        encrypted,
-        encryptedAesKey,
-        iv,
-        authTag,
-        Date.now() / 1000 + 86400
-    );
-
-    const byteAccountUpdate =
-        await program.account.byteAccount.fetch(byteAccountPDA);
-
-    const metadataAccountUpdate =
-        await program.account.metadataAccount.fetch(metadataAccountPDA);
-
-    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
-    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
-    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
-    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(encrypted.length);
-    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
-    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encrypted)));
-    expect(metadataAccountUpdate.isEncrypted).to.be.true;
-    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
-
-    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
-    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encrypted));
-    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
-    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(iv));
-    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(authTag));
-
-    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
-    const decryptedBytes = decryptWithAESGCM(
-        decryptedAesKey,
-        byteAccountUpdate.bytes,
-        byteAccountUpdate.aesIv,
-        byteAccountUpdate.aesAuthTag,
-    );
-
-    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
-    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
-
-    await delay(1000);
-  });
-
-  it("it updates an encrypted byte account to smaller bytes", async () => {
-    const id = id2;
-
-    const bytes = generateRandomByteArray(50);
-
-    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, owner);
-
-    const aesKey = generateAESKey();
-
-    const [encrypted, iv, authTag] = encryptWithAESGCM(aesKey, bytes);
-    const encryptedAesKey = encryptAESKey(owner, aesKey);
-
-    await updateByteAccount(
-        owner,
-        id,
-        encrypted,
-        encryptedAesKey,
-        iv,
-        authTag,
-        Date.now() / 1000 + 86400
-    );
-
-    const byteAccountUpdate =
-        await program.account.byteAccount.fetch(byteAccountPDA);
-
-    const metadataAccountUpdate =
-        await program.account.metadataAccount.fetch(metadataAccountPDA);
-
-    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
-    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
-    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
-    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(encrypted.length);
-    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
-    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encrypted)));
-    expect(metadataAccountUpdate.isEncrypted).to.be.true;
-    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
-
-    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
-    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encrypted));
-    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
-    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(iv));
-    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(authTag));
-
-    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
-    const decryptedBytes = decryptWithAESGCM(
-        decryptedAesKey,
-        byteAccountUpdate.bytes,
-        byteAccountUpdate.aesIv,
-        byteAccountUpdate.aesAuthTag,
-    );
-
-    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
-    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
-
-    await delay(1000);
-  });
-
-  it("it deletes an encrypted byte account", async () => {
-    const id = id2;
-
-    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, owner);
-
-    await deleteByteAccount(owner, id);
+    await deleteByteAccount(owner, version, id);
 
     await program.account.byteAccount
         .fetch(byteAccountPDA)
@@ -380,23 +366,484 @@ describe("solana-byte-store", () => {
     await delay(1000);
   });
 
+  it("it deletes version account", async () => {
+    const id = id1;
+
+    const [versionAccountPDA] = getVersionAccountPDA(id, owner);
+
+    await deleteVersionAccount(owner, id);
+
+    await program.account.versionAccount
+        .fetch(versionAccountPDA)
+        .then(() => expect(false).to.be.true)
+        .catch(() => expect(true).to.be.true);
+
+    await delay(1000);
+  });
+
+  it("it creates encrypted byte account version 1", async () => {
+    const id = id1;
+    const version = 1;
+    const bytes = generateRandomByteArray(100);
+
+    const [versionAccountPDA, versionAccountBump] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const aesKey = generateAESKey();
+    const [encryptedBytes, aesIv, aesAuthTag] = encryptWithAESGCM(aesKey, bytes);
+    const encryptedAesKey = encryptAESKey(owner, aesKey);
+
+    await createByteAccount(
+        owner,
+        id,
+        version,
+        encryptedBytes,
+        encryptedAesKey,
+        aesIv,
+        aesAuthTag,
+        Date.now() / 1000 + 86400
+    );
+
+    const versionAccountUpdate =
+        await program.account.versionAccount.fetch(versionAccountPDA);
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
+    expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(versionAccountUpdate.currentVersion.toNumber()).to.be.eq(version);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.eq(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encryptedBytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(aesAuthTag));
+
+    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
+    const decryptedBytes = decryptWithAESGCM(
+        decryptedAesKey,
+        byteAccountUpdate.bytes,
+        byteAccountUpdate.aesIv,
+        byteAccountUpdate.aesAuthTag,
+    );
+
+    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
+    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
+
+    await delay(1000);
+  });
+
+  it("it updates encrypted byte account version 1 to larger bytes", async () => {
+    const id = id1;
+    const version = 1;
+    const bytes = generateRandomByteArray(200);
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const aesKey = generateAESKey();
+    const [encryptedBytes, aesIv, aesAuthTag] = encryptWithAESGCM(aesKey, bytes);
+    const encryptedAesKey = encryptAESKey(owner, aesKey);
+
+    await updateByteAccount(
+        owner,
+        id,
+        version,
+        encryptedBytes,
+        encryptedAesKey,
+        aesIv,
+        aesAuthTag,
+        Date.now() / 1000 + 86400
+    );
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encryptedBytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(aesAuthTag));
+
+    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
+    const decryptedBytes = decryptWithAESGCM(
+        decryptedAesKey,
+        byteAccountUpdate.bytes,
+        byteAccountUpdate.aesIv,
+        byteAccountUpdate.aesAuthTag,
+    );
+
+    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
+    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
+
+    await delay(1000);
+  });
+
+  it("it updates encrypted byte account version 1 to smaller bytes", async () => {
+    const id = id1;
+    const version = 1;
+    const bytes = generateRandomByteArray(50);
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const aesKey = generateAESKey();
+    const [encryptedBytes, aesIv, aesAuthTag] = encryptWithAESGCM(aesKey, bytes);
+    const encryptedAesKey = encryptAESKey(owner, aesKey);
+
+    await updateByteAccount(
+        owner,
+        id,
+        version,
+        encryptedBytes,
+        encryptedAesKey,
+        aesIv,
+        aesAuthTag,
+        Date.now() / 1000 + 86400
+    );
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encryptedBytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(aesAuthTag));
+
+    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
+    const decryptedBytes = decryptWithAESGCM(
+        decryptedAesKey,
+        byteAccountUpdate.bytes,
+        byteAccountUpdate.aesIv,
+        byteAccountUpdate.aesAuthTag,
+    );
+
+    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
+    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
+
+    await delay(1000);
+  });
+
+  it ("it creates encrypted byte account version 2", async () => {
+    const id = id1;
+    const version = 2;
+    const bytes = generateRandomByteArray(100);
+
+    const [versionAccountPDA, versionAccountBump] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const aesKey = generateAESKey();
+    const [encryptedBytes, aesIv, aesAuthTag] = encryptWithAESGCM(aesKey, bytes);
+    const encryptedAesKey = encryptAESKey(owner, aesKey);
+
+    await createByteAccount(
+        owner,
+        id,
+        version,
+        encryptedBytes,
+        encryptedAesKey,
+        aesIv,
+        aesAuthTag,
+        Date.now() / 1000 + 86400
+    );
+
+    const versionAccountUpdate =
+        await program.account.versionAccount.fetch(versionAccountPDA);
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
+    expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(versionAccountUpdate.currentVersion.toNumber()).to.be.eq(version);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.eq(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encryptedBytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(aesAuthTag));
+
+    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
+    const decryptedBytes = decryptWithAESGCM(
+        decryptedAesKey,
+        byteAccountUpdate.bytes,
+        byteAccountUpdate.aesIv,
+        byteAccountUpdate.aesAuthTag,
+    );
+
+    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
+    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
+
+    await delay(1000);
+  });
+
+  it("it updates encrypted byte account version 2 to larger bytes", async () => {
+    const id = id1;
+    const version = 2;
+    const bytes = generateRandomByteArray(200);
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const aesKey = generateAESKey();
+    const [encryptedBytes, aesIv, aesAuthTag] = encryptWithAESGCM(aesKey, bytes);
+    const encryptedAesKey = encryptAESKey(owner, aesKey);
+
+    await updateByteAccount(
+        owner,
+        id,
+        version,
+        encryptedBytes,
+        encryptedAesKey,
+        aesIv,
+        aesAuthTag,
+        Date.now() / 1000 + 86400
+    );
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encryptedBytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(aesAuthTag));
+
+    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
+    const decryptedBytes = decryptWithAESGCM(
+        decryptedAesKey,
+        byteAccountUpdate.bytes,
+        byteAccountUpdate.aesIv,
+        byteAccountUpdate.aesAuthTag,
+    );
+
+    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
+    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
+
+    await delay(1000);
+  });
+
+  it("it updates encrypted byte account version 2 to smaller bytes", async () => {
+    const id = id1;
+    const version = 2;
+    const bytes = generateRandomByteArray(50);
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const aesKey = generateAESKey();
+    const [encryptedBytes, aesIv, aesAuthTag] = encryptWithAESGCM(aesKey, bytes);
+    const encryptedAesKey = encryptAESKey(owner, aesKey);
+
+    await updateByteAccount(
+        owner,
+        id,
+        version,
+        encryptedBytes,
+        encryptedAesKey,
+        aesIv,
+        aesAuthTag,
+        Date.now() / 1000 + 86400
+    );
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members(Array.from(encryptedBytes));
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(encryptedAesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(aesAuthTag));
+
+    const decryptedAesKey = decryptAESKey(owner, byteAccountUpdate.aesKey);
+    const decryptedBytes = decryptWithAESGCM(
+        decryptedAesKey,
+        byteAccountUpdate.bytes,
+        byteAccountUpdate.aesIv,
+        byteAccountUpdate.aesAuthTag,
+    );
+
+    expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
+    expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
+
+    await delay(1000);
+  });
+
+  it("it deletes encrypted byte account version 1", async () => {
+    const id = id1;
+    const version = 1;
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    await deleteByteAccount(owner, version, id);
+
+    await program.account.byteAccount
+        .fetch(byteAccountPDA)
+        .then(() => expect(false).to.be.true)
+        .catch(() => expect(true).to.be.true);
+
+    await program.account.metadataAccount
+        .fetch(metadataAccountPDA)
+        .then(() => expect(false).to.be.true)
+        .catch(() => expect(true).to.be.true);
+
+    await delay(1000);
+  });
+
+  it("it deletes encrypted byte account version 2", async () => {
+    const id = id1;
+    const version = 2;
+
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    await deleteByteAccount(owner, version, id);
+
+    await program.account.byteAccount
+        .fetch(byteAccountPDA)
+        .then(() => expect(false).to.be.true)
+        .catch(() => expect(true).to.be.true);
+
+    await program.account.metadataAccount
+        .fetch(metadataAccountPDA)
+        .then(() => expect(false).to.be.true)
+        .catch(() => expect(true).to.be.true);
+
+    await delay(1000);
+  });
+
+  it("it deletes encrypted version account", async () => {
+    const id = id1;
+
+    const [versionAccountPDA] = getVersionAccountPDA(id, owner);
+
+    await deleteVersionAccount(owner, id);
+
+    await program.account.versionAccount
+        .fetch(versionAccountPDA)
+        .then(() => expect(false).to.be.true)
+        .catch(() => expect(true).to.be.true);
+
+    await delay(1000);
+  });
+
   async function createByteAccount(
       owner: anchor.web3.Keypair,
       id: Uint8Array,
+      version: number,
       bytes: Uint8Array,
       aesKey?: Uint8Array,
       aesIV?: Uint8Array,
       aesAuthTag?: Uint8Array,
       expiresAtTs?: number
   ) {
-    const [byteAccountPDA] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA] = getMetadataAccountPDA(id, owner);
+    const [versionAccountPDA] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA] = getMetadataAccountPDA(id, version, owner);
 
     const transaction = new Transaction()
         .add(
             await program.methods
                 .createByteAccount(
                     Array.from(id),
+                    new BN(version),
                     Buffer.from(bytes),
                     aesKey ? Buffer.from(aesKey) : null,
                     aesIV ? Buffer.from(aesIV) : null,
@@ -404,6 +851,7 @@ describe("solana-byte-store", () => {
                     expiresAtTs ? new BN(expiresAtTs) : null
                 )
                 .accounts({
+                  versionAccount: versionAccountPDA,
                   byteAccount: byteAccountPDA,
                   metadataAccount: metadataAccountPDA,
                   owner: owner.publicKey,
@@ -418,6 +866,7 @@ describe("solana-byte-store", () => {
                 await program.methods
                     .createByteAccount(
                         Array.from(id),
+                        new BN(version),
                         Buffer.from(bytes),
                         aesKey ? Buffer.from(aesKey) : null,
                         aesIV ? Buffer.from(aesIV) : null,
@@ -425,6 +874,7 @@ describe("solana-byte-store", () => {
                         expiresAtTs ? new BN(expiresAtTs) : null
                     )
                     .accounts({
+                      versionAccount: versionAccountPDA,
                       byteAccount: byteAccountPDA,
                       metadataAccount: metadataAccountPDA,
                       owner: owner.publicKey,
@@ -442,14 +892,15 @@ describe("solana-byte-store", () => {
   async function updateByteAccount(
       owner: anchor.web3.Keypair,
       id: Uint8Array,
+      version: number,
       bytes: Uint8Array,
       aesKey?: Uint8Array,
       aesIV?: Uint8Array,
       aesAuthTag?: Uint8Array,
       expiresAtTs?: number
   ) {
-    const [byteAccountPDA] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA] = getMetadataAccountPDA(id, owner);
+    const [byteAccountPDA] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA] = getMetadataAccountPDA(id, version, owner);
 
     const transaction = new Transaction()
         .add(
@@ -498,10 +949,11 @@ describe("solana-byte-store", () => {
 
   async function deleteByteAccount(
       owner: anchor.web3.Keypair,
+      version: number,
       id: Uint8Array
   ) {
-    const [byteAccountPDA] = getByteAccountPDA(id, owner);
-    const [metadataAccountPDA] = getMetadataAccountPDA(id, owner);
+    const [byteAccountPDA] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA] = getMetadataAccountPDA(id, version, owner);
 
     const transaction = new Transaction()
         .add(
@@ -534,13 +986,48 @@ describe("solana-byte-store", () => {
     await sendAndConfirmTransaction(connection, transaction, [owner]);
   }
 
-  function getByteAccountPDA(
+  async function deleteVersionAccount(
+      owner: anchor.web3.Keypair,
+      id: Uint8Array
+  ) {
+    const [versionAccountPDA] = getVersionAccountPDA(id, owner);
+
+    const transaction = new Transaction()
+        .add(
+            await program.methods
+                .deleteVersionAccount()
+                .accounts({
+                  versionAccount: versionAccountPDA,
+                  owner: owner.publicKey,
+                })
+                .transaction()
+        )
+
+    printTransaction(
+        new Transaction()
+            .add(
+                await program.methods
+                    .deleteVersionAccount()
+                    .accounts({
+                      versionAccount: versionAccountPDA,
+                      owner: owner.publicKey,
+                    })
+                    .transaction()
+            ),
+        "563MEMYqt2tQuaAM6aWwcfgsNdopaetuqABoEAiVnsAk",
+        [owner]
+    );
+
+    await sendAndConfirmTransaction(connection, transaction, [owner]);
+  }
+
+  function getVersionAccountPDA(
       id: Uint8Array,
       owner: anchor.web3.Keypair,
   ) {
     return PublicKey.findProgramAddressSync(
         [
-          anchor.utils.bytes.utf8.encode("byte_account"),
+          anchor.utils.bytes.utf8.encode("version_account"),
           owner.publicKey.toBytes(),
           Uint8Array.from(id)
         ],
@@ -548,15 +1035,33 @@ describe("solana-byte-store", () => {
     );
   }
 
+  function getByteAccountPDA(
+      id: Uint8Array,
+      version: number,
+      owner: anchor.web3.Keypair,
+  ) {
+    return PublicKey.findProgramAddressSync(
+        [
+          anchor.utils.bytes.utf8.encode("byte_account"),
+          owner.publicKey.toBytes(),
+          Uint8Array.from(id),
+          anchor.utils.bytes.utf8.encode(`${version}`)
+        ],
+        program.programId
+    );
+  }
+
   function getMetadataAccountPDA(
       id: Uint8Array,
+      version: number,
       owner: anchor.web3.Keypair,
   ) {
     return PublicKey.findProgramAddressSync(
         [
           anchor.utils.bytes.utf8.encode("metadata_account"),
           owner.publicKey.toBytes(),
-          Uint8Array.from(id)
+          Uint8Array.from(id),
+          anchor.utils.bytes.utf8.encode(`${version}`)
         ],
         program.programId
     );

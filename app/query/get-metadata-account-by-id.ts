@@ -4,8 +4,9 @@ import {getMetadataAccountPDA} from "../pda/metadata-account";
 import {padBytesEnd} from "../util/pad-bytes";
 
 export async function getMetadataAccountById(args: Record<string, any>) {
-    const owner = args['owner'];
-    const id = args['id'];
+    const owner = args['owner'] as string;
+    const id = args['id'] as string;
+    const version = args['version'] as number;
 
     const idBytes = padBytesEnd(
         Uint8Array.from(
@@ -20,7 +21,8 @@ export async function getMetadataAccountById(args: Record<string, any>) {
 
     const [metadataAccountPDA] = getMetadataAccountPDA(
         new PublicKey(owner),
-        idBytes
+        idBytes,
+        version
     );
 
     const program = getProgramFromIDl();

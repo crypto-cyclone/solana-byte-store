@@ -15,6 +15,7 @@ export async function promptInstruction(): Promise<string | undefined> {
         })
         .help()
         .alias('help', 'h')
+        .version(false)
         .argv;
 
     async function promptForInstruction(): Promise<string> {

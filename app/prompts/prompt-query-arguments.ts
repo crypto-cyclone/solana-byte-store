@@ -3,9 +3,11 @@ import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
 
 const queryArgumentsConfig = {
-    'get-byte-account': [{ name: 'owner', type: 'string'}, { name: 'id', type: 'string' }],
-    'get-metadata-account': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }],
-    'get-decrypted-bytes': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }],
+    'get-version-account': [{ name: 'owner', type: 'string'}, { name: 'id', type: 'string' }],
+    'get-byte-account': [{ name: 'owner', type: 'string'}, { name: 'id', type: 'string' }, { name: 'version', type: 'u64' }],
+    'get-metadata-account': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }, { name: 'version', type: 'u64' }],
+    'get-decrypted-bytes': [{ name: 'owner', type: 'string' }, { name: 'id', type: 'string' }, { name: 'version', type: 'u64' }],
+    'get-many-version-accounts': [{ name: 'owner', type: 'string' }],
     'get-many-byte-accounts': [{ name: 'owner', type: 'string' }],
     'get-many-metadata-accounts': [{ name: 'owner', type: 'string' }]
 };
@@ -17,7 +19,8 @@ export async function promptQueryArguments(queryAction: string, preparedArgument
         throw new Error(`Query action ${queryAction} not found or does not have predefined arguments.`);
     }
 
-    let argvBuilder = yargs(hideBin(process.argv));
+    let argvBuilder = yargs(hideBin(process.argv))
+        .version(false);
     queryArgs.forEach(arg => {
         argvBuilder = argvBuilder.option(arg.name, {
             alias: `arg-${arg.name}`,

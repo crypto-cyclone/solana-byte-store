@@ -5,6 +5,7 @@ import {getProgramFromIDl} from "../util/get-program-from-idl";
 export function getByteAccountPDA(
     owner: anchor.web3.PublicKey,
     id: Uint8Array,
+    version: number,
 ) {
     const program = getProgramFromIDl();
 
@@ -12,7 +13,8 @@ export function getByteAccountPDA(
         [
             anchor.utils.bytes.utf8.encode("byte_account"),
             owner.toBytes(),
-            id
+            id,
+            anchor.utils.bytes.utf8.encode(`${version}`),
         ],
         program.programId
     );

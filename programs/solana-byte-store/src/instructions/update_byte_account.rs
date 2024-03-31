@@ -11,8 +11,8 @@ pub fn invoke(
     aes_auth_tag: Option<Vec<u8>>,
     expires_at_ts: Option<u64>
 ) -> Result<()> {
-    let mut byte_account = &mut ctx.accounts.byte_account;
-    let mut metadata_account = &mut ctx.accounts.metadata_account;
+    let byte_account = &mut ctx.accounts.byte_account;
+    let metadata_account = &mut ctx.accounts.metadata_account;
 
     let clock = Clock::get()?;
     let timestamp: u64 = clock.unix_timestamp.try_into().unwrap();
@@ -48,7 +48,7 @@ pub fn invoke(
 pub struct UpdateByteAccountContext<'info> {
     #[account(
         mut,
-        seeds=[b"byte_account", owner.key.as_ref(), metadata_account.id.as_ref()],
+        seeds=[b"byte_account", owner.key.as_ref(), metadata_account.id.as_ref(), metadata_account.version.to_string().as_bytes().as_ref()],
         bump,
         realloc=8+std::mem::size_of::<ByteAccount>()+bytes.len()+aes_key.as_ref().map_or(0, |v| v.len())+aes_iv.as_ref().map_or(0, |v| v.len())+aes_auth_tag.as_ref().map_or(0, |v| v.len()),
         realloc::payer=owner,
@@ -58,7 +58,7 @@ pub struct UpdateByteAccountContext<'info> {
 
     #[account(
         mut,
-        seeds=[b"metadata_account", owner.key.as_ref(), metadata_account.id.as_ref()],
+        seeds=[b"metadata_account", owner.key.as_ref(), metadata_account.id.as_ref(), metadata_account.version.to_string().as_bytes().as_ref()],
         bump=metadata_account.bump,
     )]
     pub metadata_account: Account<'info, MetadataAccount>,

@@ -8,6 +8,7 @@ import {padBytesEnd} from "../util/pad-bytes";
 import {generateAESKey} from "../util/generate-aes-key";
 import {encryptAESKey} from "../util/encrypt-aes-key";
 import {encryptBytesAES} from "../util/encrypt-bytes-aes";
+import {getVersionAccountPDA} from "../pda/version-account";
 const Spinner = require('cli-spinner').Spinner;
 
 export function prepareCreateByteAccountOnArgument(encryptionEnabled: boolean, keypair: Keypair): (argv: any, argValues: any) => void {
@@ -59,9 +60,14 @@ export function prepareCreateByteAccountAccounts(
     owner: PublicKey
 ): Record<string, string> {
     const id = args['id'] as string;
+    const version = args['version'] as number;
 
     if (id == null) {
-        throw new Error(`prepareCreateEscrowAccounts argument id not found.`);
+        throw new Error(`prepareCreateByteAccountAccounts argument id not found.`);
+    }
+
+    if (version == null) {
+        throw new Error(`prepareCreateByteAccountAccounts argument version not found.`);
     }
 
     const idBytes = padBytesEnd(
@@ -75,17 +81,25 @@ export function prepareCreateByteAccountAccounts(
         throw new Error('id could not fit within 32 bytes')
     }
 
-    const [byteAccountPDA] = getByteAccountPDA(
-        owner,
-        idBytes,
-    );
-
-    const [metadataAccountPDA] = getMetadataAccountPDA(
+    const [versionAccountPDA] = getVersionAccountPDA(
         owner,
         idBytes
     );
 
+    const [byteAccountPDA] = getByteAccountPDA(
+        owner,
+        idBytes,
+        version,
+    );
+
+    const [metadataAccountPDA] = getMetadataAccountPDA(
+        owner,
+        idBytes,
+        version
+    );
+
     return {
+        versionAccount: versionAccountPDA.toBase58(),
         byteAccount: byteAccountPDA.toBase58(),
         metadataAccount: metadataAccountPDA.toBase58(),
         owner: owner.toBase58(),
@@ -101,6 +115,7 @@ export async function createByteAccount(
     const program = getProgramFromIDl();
 
     const id = args['id'] as string;
+    const version = args['version'] as number;
     const bytes = args['bytes'] as string;
     const aesKey: string | undefined = args['aesKey'];
     const aesIv: string | undefined = args['aesIv'];
@@ -112,6 +127,7 @@ export async function createByteAccount(
             await program.methods
                 .createByteAccount(
                     Array.from(Buffer.from(id, 'utf8')),
+                    new BN(version),
                     Buffer.from(bytes, 'base64'),
                     aesKey ? Buffer.from(aesKey, 'hex') : null,
                     aesIv ? Buffer.from(aesIv, 'hex') : null,
@@ -119,6 +135,7 @@ export async function createByteAccount(
                     expiresAtTs ? new BN(expiresAtTs) : null
                 )
                 .accounts({
+                    versionAccount: accounts['versionAccount'],
                     byteAccount: accounts['byteAccount'],
                     metadataAccount: accounts['metadataAccount'],
                     owner: accounts['owner'],

@@ -9,6 +9,7 @@ export async function promptDefaultOwner(): Promise<boolean> {
             description: 'Use current keypair as owner',
             type: 'boolean',
         })
+        .version(false)
         .help()
         .alias('help', 'h')
         .argv;

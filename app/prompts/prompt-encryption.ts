@@ -11,6 +11,7 @@ export async function promptEncryption(): Promise<boolean> {
         })
         .help()
         .alias('help', 'h')
+        .version(false)
         .argv;
 
     async function promptForEncryption(): Promise<boolean> {

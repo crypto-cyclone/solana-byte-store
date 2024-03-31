@@ -18,6 +18,7 @@ export async function promptInstructionOrQuery(): Promise<'instruction' | 'query
         })
         .help()
         .alias('help', 'h')
+        .version(false)
         .argv;
 
 

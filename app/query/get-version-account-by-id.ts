@@ -1,12 +1,11 @@
 import {PublicKey} from "@solana/web3.js";
-import {getByteAccountPDA} from "../pda/byte-account";
 import {getProgramFromIDl} from "../util/get-program-from-idl";
 import {padBytesEnd} from "../util/pad-bytes";
+import {getVersionAccountPDA} from "../pda/version-account";
 
-export async function getByteAccountById(args: Record<string, any>) {
+export async function getVersionAccountById(args: Record<string, any>) {
     const owner = args['owner'] as string;
     const id = args['id'] as string;
-    const version = args['version'] as number;
 
     const idBytes = padBytesEnd(
         Uint8Array.from(
@@ -19,15 +18,14 @@ export async function getByteAccountById(args: Record<string, any>) {
         throw new Error('id could not fit within 32 bytes')
     }
 
-    const [byteAccountPDA] = getByteAccountPDA(
+    const [versionAccountPDA] = getVersionAccountPDA(
         new PublicKey(owner),
         idBytes,
-        version
     );
 
     const program = getProgramFromIDl();
 
-    await program.account.byteAccount.fetch(byteAccountPDA)
+    await program.account.versionAccount.fetch(versionAccountPDA)
         .then((acc) => console.log(acc))
         .catch(() => console.log(null));
 }

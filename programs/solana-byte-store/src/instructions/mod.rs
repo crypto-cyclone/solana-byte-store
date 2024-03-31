@@ -6,3 +6,6 @@ pub mod update_byte_account;
 
 pub use delete_byte_account::*;
 pub mod delete_byte_account;
+
+pub use delete_version_account::*;
+pub mod delete_version_account;
