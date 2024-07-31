@@ -36,6 +36,16 @@ pub mod solana_byte_store {
         )
     }
 
+    pub fn append_byte_account(
+        ctx: Context<AppendByteAccountContext>,
+        bytes: Vec<u8>,
+    ) -> Result<()> {
+        append_byte_account::invoke(
+            ctx,
+            bytes,
+        )
+    }
+
     pub fn update_byte_account(
         ctx: Context<UpdateByteAccountContext>,
         bytes: Vec<u8>,

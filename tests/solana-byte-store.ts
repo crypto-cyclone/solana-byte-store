@@ -85,6 +85,63 @@ describe("solana-byte-store", () => {
     await delay(1000);
   });
 
+  it("it appends more bytes to byte account version 1", async () => {
+    const id = id1;
+    const version = 1;
+    const bytes = generateRandomByteArray(100);
+
+    const [versionAccountPDA, versionAccountBump] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const byteAccount = await program.account.byteAccount.fetch(byteAccountPDA);
+
+    await appendByteAccount(
+        owner,
+        id,
+        version,
+        bytes,
+    );
+
+    const versionAccountUpdate =
+        await program.account.versionAccount.fetch(versionAccountPDA);
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
+    expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(versionAccountUpdate.currentVersion.toNumber()).to.be.eq(version);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.false;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members([
+        ...Array.from(byteAccount.bytes),
+        ...Array.from(bytes),
+    ]);
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(byteAccount.aesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(byteAccount.aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(byteAccount.aesAuthTag));
+
+    await delay(1000);
+  });
+
   it("it updates byte account version 1 to larger bytes", async () => {
     const id = id1;
     const version = 1;
@@ -226,6 +283,62 @@ describe("solana-byte-store", () => {
     expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from([]));
     expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from([]));
     expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from([]));
+
+    await delay(1000);
+  });
+
+  it ("it appends more bytes to byte account version 2", async () => {
+    const id = id1;
+    const version = 2;
+    const bytes = generateRandomByteArray(100);
+
+    const [versionAccountPDA, versionAccountBump] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const byteAccount = await program.account.byteAccount.fetch(byteAccountPDA);
+
+    await appendByteAccount(
+        owner,
+        id,
+        version,
+        bytes,
+    );
+
+    const versionAccountUpdate =
+        await program.account.versionAccount.fetch(versionAccountPDA);
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
+    expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(versionAccountUpdate.currentVersion.toNumber()).to.be.eq(version);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.false;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members([
+      ...Array.from(byteAccount.bytes),
+      ...Array.from(bytes),
+    ]);
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(byteAccount.aesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(byteAccount.aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(byteAccount.aesAuthTag));
 
     await delay(1000);
   });
@@ -451,6 +564,66 @@ describe("solana-byte-store", () => {
     await delay(1000);
   });
 
+  it("it appends more bytes to encrypted byte account version 1", async () => {
+    const id = id1;
+    const version = 1;
+    const bytes = generateRandomByteArray(100);
+
+    const [versionAccountPDA, versionAccountBump] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const aesKey = generateAESKey();
+    const [encryptedBytes, aesIv, aesAuthTag] = encryptWithAESGCM(aesKey, bytes);
+    const encryptedAesKey = encryptAESKey(owner, aesKey);
+
+    const byteAccount = await program.account.byteAccount.fetch(byteAccountPDA);
+
+    await appendByteAccount(
+        owner,
+        id,
+        version,
+        encryptedBytes,
+    );
+
+    const versionAccountUpdate =
+        await program.account.versionAccount.fetch(versionAccountPDA);
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
+    expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(versionAccountUpdate.currentVersion.toNumber()).to.be.eq(version);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members([
+      ...Array.from(byteAccount.bytes),
+      ...Array.from(encryptedBytes),
+    ]);
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(byteAccount.aesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(byteAccount.aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(byteAccount.aesAuthTag));
+
+    await delay(1000);
+  });
+
   it("it updates encrypted byte account version 1 to larger bytes", async () => {
     const id = id1;
     const version = 1;
@@ -639,6 +812,66 @@ describe("solana-byte-store", () => {
 
     expect(Array.from(decryptedAesKey)).to.have.same.members(Array.from(aesKey));
     expect(Array.from(decryptedBytes)).to.have.same.members(Array.from(bytes));
+
+    await delay(1000);
+  });
+
+  it ("it appends more bytes to encrypted byte account version 2", async () => {
+    const id = id1;
+    const version = 2;
+    const bytes = generateRandomByteArray(100);
+
+    const [versionAccountPDA, versionAccountBump] = getVersionAccountPDA(id, owner);
+    const [byteAccountPDA, byteAccountBump] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA, metadataAccountBump] = getMetadataAccountPDA(id, version, owner);
+
+    const aesKey = generateAESKey();
+    const [encryptedBytes, aesIv, aesAuthTag] = encryptWithAESGCM(aesKey, bytes);
+    const encryptedAesKey = encryptAESKey(owner, aesKey);
+
+    const byteAccount = await program.account.byteAccount.fetch(byteAccountPDA);
+
+    await appendByteAccount(
+        owner,
+        id,
+        version,
+        encryptedBytes,
+    );
+
+    const versionAccountUpdate =
+        await program.account.versionAccount.fetch(versionAccountPDA);
+
+    const byteAccountUpdate =
+        await program.account.byteAccount.fetch(byteAccountPDA);
+
+    const metadataAccountUpdate =
+        await program.account.metadataAccount.fetch(metadataAccountPDA);
+
+    expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
+    expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(versionAccountUpdate.currentVersion.toNumber()).to.be.eq(version);
+
+    expect(metadataAccountUpdate.bump).to.be.eq(metadataAccountBump);
+    expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
+    expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
+    expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
+    expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.isEncrypted).to.be.true;
+    expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
+
+    expect(byteAccountUpdate.bump).to.be.eq(byteAccountBump);
+    expect(Array.from(byteAccountUpdate.bytes)).to.have.same.members([
+      ...Array.from(byteAccount.bytes),
+      ...Array.from(encryptedBytes),
+    ]);
+    expect(Array.from(byteAccountUpdate.aesKey)).to.have.same.members(Array.from(byteAccount.aesKey));
+    expect(Array.from(byteAccountUpdate.aesIv)).to.have.same.members(Array.from(byteAccount.aesIv));
+    expect(Array.from(byteAccountUpdate.aesAuthTag)).to.have.same.members(Array.from(byteAccount.aesAuthTag));
 
     await delay(1000);
   });
@@ -850,7 +1083,7 @@ describe("solana-byte-store", () => {
                     aesAuthTag ? Buffer.from(aesAuthTag) : null,
                     expiresAtTs ? new BN(expiresAtTs) : null
                 )
-                .accounts({
+                .accountsStrict({
                   versionAccount: versionAccountPDA,
                   byteAccount: byteAccountPDA,
                   metadataAccount: metadataAccountPDA,
@@ -873,8 +1106,54 @@ describe("solana-byte-store", () => {
                         aesAuthTag ? Buffer.from(aesAuthTag) : null,
                         expiresAtTs ? new BN(expiresAtTs) : null
                     )
-                    .accounts({
+                    .accountsStrict({
                       versionAccount: versionAccountPDA,
+                      byteAccount: byteAccountPDA,
+                      metadataAccount: metadataAccountPDA,
+                      owner: owner.publicKey,
+                      systemProgram: SystemProgram.programId
+                    })
+                    .transaction()
+            ),
+        "563MEMYqt2tQuaAM6aWwcfgsNdopaetuqABoEAiVnsAk",
+        [owner]
+    );
+
+    await sendAndConfirmTransaction(connection, transaction, [owner]);
+  }
+
+  async function appendByteAccount(
+      owner: anchor.web3.Keypair,
+      id: Uint8Array,
+      version: number,
+      bytes: Uint8Array,
+  ) {
+    const [byteAccountPDA] = getByteAccountPDA(id, version, owner);
+    const [metadataAccountPDA] = getMetadataAccountPDA(id, version, owner);
+
+    const transaction = new Transaction()
+        .add(
+            await program.methods.appendByteAccount
+                (
+                    Buffer.from(bytes),
+                )
+                .accountsStrict({
+                  byteAccount: byteAccountPDA,
+                  metadataAccount: metadataAccountPDA,
+                  owner: owner.publicKey,
+                  systemProgram: SystemProgram.programId
+                })
+                .transaction()
+        )
+
+    printTransaction(
+        new Transaction()
+            .add(
+                await program.methods
+                    .appendByteAccount(
+                        Buffer.from(bytes),
+                    )
+                    .accountsStrict({
                       byteAccount: byteAccountPDA,
                       metadataAccount: metadataAccountPDA,
                       owner: owner.publicKey,
@@ -912,7 +1191,7 @@ describe("solana-byte-store", () => {
                     aesAuthTag ? Buffer.from(aesAuthTag) : null,
                     expiresAtTs ? new BN(expiresAtTs) : null
                 )
-                .accounts({
+                .accountsStrict({
                   byteAccount: byteAccountPDA,
                   metadataAccount: metadataAccountPDA,
                   owner: owner.publicKey,
@@ -932,7 +1211,7 @@ describe("solana-byte-store", () => {
                         aesAuthTag ? Buffer.from(aesAuthTag) : null,
                         expiresAtTs ? new BN(expiresAtTs) : null
                     )
-                    .accounts({
+                    .accountsStrict({
                       byteAccount: byteAccountPDA,
                       metadataAccount: metadataAccountPDA,
                       owner: owner.publicKey,
@@ -959,7 +1238,7 @@ describe("solana-byte-store", () => {
         .add(
             await program.methods
                 .deleteByteAccount()
-                .accounts({
+                .accountsStrict({
                   byteAccount: byteAccountPDA,
                   metadataAccount: metadataAccountPDA,
                   owner: owner.publicKey,
@@ -972,7 +1251,7 @@ describe("solana-byte-store", () => {
             .add(
                 await program.methods
                     .deleteByteAccount()
-                    .accounts({
+                    .accountsStrict({
                       byteAccount: byteAccountPDA,
                       metadataAccount: metadataAccountPDA,
                       owner: owner.publicKey,
@@ -996,7 +1275,7 @@ describe("solana-byte-store", () => {
         .add(
             await program.methods
                 .deleteVersionAccount()
-                .accounts({
+                .accountsStrict({
                   versionAccount: versionAccountPDA,
                   owner: owner.publicKey,
                 })
@@ -1008,7 +1287,7 @@ describe("solana-byte-store", () => {
             .add(
                 await program.methods
                     .deleteVersionAccount()
-                    .accounts({
+                    .accountsStrict({
                       versionAccount: versionAccountPDA,
                       owner: owner.publicKey,
                     })
