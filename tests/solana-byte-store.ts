@@ -112,6 +112,8 @@ describe("solana-byte-store", () => {
     const metadataAccountUpdate =
         await program.account.metadataAccount.fetch(metadataAccountPDA);
 
+    const totalBytes = [...Array.from(byteAccount.bytes), ...Array.from(bytes)];
+
     expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
     expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
     expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
@@ -121,12 +123,12 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
     expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
     expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
-    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(totalBytes.length);
     expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
     expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
 
-    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(Buffer.from(totalBytes))));
     expect(metadataAccountUpdate.isEncrypted).to.be.false;
     expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
@@ -314,6 +316,8 @@ describe("solana-byte-store", () => {
     const metadataAccountUpdate =
         await program.account.metadataAccount.fetch(metadataAccountPDA);
 
+    const totalBytes = [...Array.from(byteAccount.bytes), ...Array.from(bytes)];
+
     expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
     expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
     expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
@@ -323,11 +327,11 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
     expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
     expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
-    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(totalBytes.length);
     expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
     expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(bytes)));
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(Buffer.from(totalBytes))));
     expect(metadataAccountUpdate.isEncrypted).to.be.false;
     expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
@@ -595,6 +599,8 @@ describe("solana-byte-store", () => {
     const metadataAccountUpdate =
         await program.account.metadataAccount.fetch(metadataAccountPDA);
 
+    const totalBytes = [...Array.from(byteAccount.bytes), ...Array.from(encryptedBytes)];
+
     expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
     expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
     expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
@@ -604,11 +610,11 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
     expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
     expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
-    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(totalBytes.length);
     expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
     expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(Buffer.from(totalBytes))));
     expect(metadataAccountUpdate.isEncrypted).to.be.true;
     expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 
@@ -847,6 +853,8 @@ describe("solana-byte-store", () => {
     const metadataAccountUpdate =
         await program.account.metadataAccount.fetch(metadataAccountPDA);
 
+    const totalBytes = [...Array.from(byteAccount.bytes), ...Array.from(encryptedBytes)];
+
     expect(versionAccountUpdate.bump).to.be.eq(versionAccountBump);
     expect(versionAccountUpdate.id).to.have.same.members(Array.from(id));
     expect(Array.from(versionAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
@@ -856,11 +864,11 @@ describe("solana-byte-store", () => {
     expect(metadataAccountUpdate.id).to.have.same.members(Array.from(id));
     expect(metadataAccountUpdate.version.toNumber()).to.be.eq(version);
     expect(Array.from(metadataAccountUpdate.owner.toBytes())).to.have.same.members(Array.from(owner.publicKey.toBytes()));
-    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(bytes.length);
+    expect(metadataAccountUpdate.size.toNumber()).to.be.eq(totalBytes.length);
     expect(metadataAccountUpdate.createdAtTs.toNumber()).to.be.gt(0);
     expect(metadataAccountUpdate.updatedAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
     expect(metadataAccountUpdate.expiresAtTs.toNumber()).to.be.gt(metadataAccountUpdate.createdAtTs.toNumber());
-    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(encryptedBytes)));
+    expect(metadataAccountUpdate.checksum).to.have.same.members(Array.from(await generateChecksum(Buffer.from(totalBytes))));
     expect(metadataAccountUpdate.isEncrypted).to.be.true;
     expect(Array.from(metadataAccountUpdate.byteAccount.toBytes())).to.have.same.members(Array.from(byteAccountPDA.toBytes()));
 

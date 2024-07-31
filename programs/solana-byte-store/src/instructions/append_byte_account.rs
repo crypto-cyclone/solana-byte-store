@@ -5,20 +5,20 @@ use crate::util::checksum;
 pub fn invoke(
     ctx: Context<AppendByteAccountContext>,
     bytes: Vec<u8>,
-) -> anchor_lang::Result<()> {
+) -> Result<()> {
     let byte_account = &mut ctx.accounts.byte_account;
     let metadata_account = &mut ctx.accounts.metadata_account;
 
     let clock = Clock::get()?;
     let timestamp: u64 = clock.unix_timestamp.try_into().unwrap();
 
-    metadata_account.size = bytes.len() as u64;
-    metadata_account.updated_at_ts = timestamp;
-    metadata_account.checksum = checksum::generate(bytes.clone().as_slice());
-    metadata_account.byte_account = byte_account.to_account_info().key();
-
     byte_account.bump = ctx.bumps.byte_account;
     byte_account.bytes.append(&mut bytes.clone());
+
+    metadata_account.size = byte_account.bytes.len() as u64;
+    metadata_account.updated_at_ts = timestamp;
+    metadata_account.checksum = checksum::generate(byte_account.bytes.clone().as_slice());
+    metadata_account.byte_account = byte_account.to_account_info().key();
 
     Ok(())
 }
